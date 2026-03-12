@@ -1,0 +1,113 @@
+1 Architecture
+
+    - Frontend + backend: Next.js (App Router) for UI + API (Route Handlers / Server Actions).
+    - DB: MongoDB with a required tenantId field on every “business” document.
+    - Auth: Auth.js (NextAuth) with a Credentials (username/password) provider
+
+    Notes
+    - Start with one tenant (your company) but keep multi-tenant schema.
+    - Prefer TanStack Query for server-state (fetch/cache/optimistic updates); keep Zustand for UI-only state.
+
+2 Data model
+
+    - Tenant: { _id, name, slug, createdAt }
+    - User: { _id, email?, username, passwordHash, createdAt }
+    - Membership: { _id, tenantId, userId, role } (role: admin | member)
+    - Task: { _id, tenantId, title, completedAt?, position, createdByUserId, updatedAt, version }
+
+    DB indexes (Mongo)
+    - Membership: unique (tenantId, userId)
+    - Task: (tenantId, position)
+    - Task: (tenantId, updatedAt)
+
+3. User / password
+
+    - Login identifier: start with email (simpler) OR username (if you really want it)
+    - Password hashing (bcrypt/argon2), rate limiting on login, and a reset flow
+    - Session strategy: cookies via Auth.js
+    - Tenant resolution: after login choose active tenant (for now: fixed to “company tenant”)
+
+4. Single company at first with option to expand
+
+    - On first signup, create a Membership for that tenant; make the first user admin.
+    - Later, expanding to many companies becomes: “create tenant” + “invite user” + “select active tenant”.
+
+    Implementation checklist
+    - Seed/create the first Tenant (your company)
+    - On user signup: create user + membership in that tenant
+    - Add role checks to admin-only endpoints (invite, role change, tenant settings)
+
+5. Drag & drop ordering
+
+    - Store a position on each task (not array order). Reordering updates positions.
+    - Add a version (or updatedAt) and use optimistic concurrency to avoid silent overwrites when two people reorder/edit.
+
+    Reorder strategy (simple)
+    - Use “gapped” positions (1000, 2000, 3000...) so inserts usually only update one task
+    - If gaps get too small, re-normalize positions within the list
+
+6. Milestone 1 (local MVP)
+
+    App
+    - Create tasks
+    - Mark complete / uncomplete
+    - Delete tasks
+    - Drag/drop reorder (persisted)
+
+    API (Next Route Handlers)
+    - POST /api/tasks
+    - GET /api/tasks
+    - PATCH /api/tasks/:id (toggle complete, rename)
+    - POST /api/tasks/reorder (or PATCH with array of moves)
+
+    Data rules
+    - Every task query is scoped by tenantId
+    - Every write uses optimistic concurrency (version or updatedAt)
+
+7. Milestone 2 (auth + tenant scoping)
+
+    Auth
+    - Sign up + sign in (Auth.js credentials)
+    - Password reset: decide (email flow later, or admin reset for MVP)
+    - Rate limit sign-in attempts
+
+    Tenant
+    - Create one Tenant for your company
+    - Ensure session/user always maps to tenantId
+
+8. Azure (App Service) + Terraform
+
+    Azure basics
+    - Create a Subscription + Resource Group
+    - Set budgets/alerts immediately
+
+    Terraform basics
+    - Use AzureRM provider
+    - Start with local state, then move to remote state in Azure Storage
+
+    Terraform resources (minimum)
+    - Resource Group
+    - App Service Plan (Linux)
+    - Linux Web App
+    - Application Insights (observability)
+    - App settings (env vars): MONGODB_URI, AUTH_SECRET, NEXTAUTH_URL, etc.
+
+    Deploy
+    - Use CI (GitHub Actions) to build + deploy
+    - Keep secrets in GitHub Secrets or Azure Key Vault (later)
+
+9. Testing
+
+    Frontend
+    - Cypress: E2E flows (create, complete, reorder)
+    - Component tests: React Testing Library (or Cypress Component Testing)
+
+    Backend
+    - Jest: unit tests for validation (Zod), reorder logic, tenant scoping helpers
+    - Integration tests: hit API routes (start dev server in test env or use a route-test helper)
+
+    - Easiest path for a Next.js SSR app: Azure App Service (Linux)
+    - Add: Application Insights for logs/metrics, Key Vault for secrets, and Budgets/alerts for cost safety.
+
+7.
+
