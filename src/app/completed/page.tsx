@@ -1,8 +1,23 @@
-export default function CompletedPage() {
+import { TaskWindow } from "@/components/tasks/TaskWindow";
+import { TaskEntry } from "@/components/tasks/TaskEntry";
+import { getCompletedTasks } from "@/lib/tasks";
+
+export const dynamic = "force-dynamic";
+
+export default async function CompletedPage() {
+  const tasks = await getCompletedTasks();
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl text-white font-semibold">Completed</h1>
-      <p className="text-sm text-gray-200">placeholder</p>
-    </div>
+    <TaskWindow title="Completed tasks">
+      <div className="space-y-2">
+        {tasks.map((task, index) => (
+          <TaskEntry
+            key={task.id}
+            index={index}
+            text={task.title}
+          />
+        ))}
+      </div>
+    </TaskWindow>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const navItems = [
-  { href: "/", label: "Tasks" },
+  { href: "/", label: "Pending" },
   { href: "/completed", label: "Completed" },
 ];
 
