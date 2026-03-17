@@ -13,7 +13,7 @@ export function TaskEntry({
   textClassName = "text-sm text-gray-300",
   rightSlot,
 }: TaskEntryProps) {
-  const backgroundClass = index % 2 === 0 ? "bg-slate-700" : "bg-slate-800";
+  const backgroundClass = index % 2 === 0 ? "bg-zinc-700" : "bg-zinc-800";
 
   return (
     <div

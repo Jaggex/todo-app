@@ -68,3 +68,25 @@ export async function addTask(title: string) {
   await writeTasksToDb([...tasks, newTask]);
   return newTask;
 }
+
+export async function reorderPendingTasksById(orderedPendingTaskIds: string[]) {
+  const tasks = await readTasksFromDb();
+
+  const pending = tasks.filter((task) => !task.completed);
+  const completed = tasks.filter((task) => task.completed);
+
+  const pendingById = new Map(pending.map((task) => [task.id, task] as const));
+
+  const nextPending: Task[] = [];
+  for (const id of orderedPendingTaskIds) {
+    const task = pendingById.get(id);
+    if (!task) continue;
+    nextPending.push(task);
+    pendingById.delete(id);
+  }
+
+  // Safety: keep any pending tasks not included in the request.
+  nextPending.push(...pendingById.values());
+
+  await writeTasksToDb([...nextPending, ...completed]);
+}

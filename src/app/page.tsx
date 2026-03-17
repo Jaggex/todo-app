@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { TaskWindow } from "@/components/tasks/TaskWindow";
-import { TaskEntry } from "@/components/tasks/TaskEntry";
 import { TaskForm } from "@/components/tasks/TaskForm";
+import { TaskListDnd } from "@/components/tasks/TaskListDnd";
 import { getPendingTasks } from "@/lib/tasks";
 
 export const dynamic = "force-dynamic";
@@ -24,18 +24,14 @@ export default async function Home({
         title="Pending Tasks"
         rightSlot={
           <Link
-            className="rounded-md px-3 py-[2px] text-sm text-gray-300 bg-slate-800 hover:bg-neutral-100 hover:text-black"
+            className="rounded-md px-3 py-3 text-sm text-gray-300 bg-zinc-900 hover:bg-neutral-100 hover:text-black"
             href={isNewOpen ? "/" : "/?new=1"}
           >
             {isNewOpen ? "Close" : "New task"}
           </Link>
         }
       >
-        <div className="space-y-2">
-          {tasks.map((task, index) => (
-            <TaskEntry key={task.id} index={index} text={task.title} />
-          ))}
-        </div>
+        <TaskListDnd tasks={tasks} />
       </TaskWindow>
     </div>
   );

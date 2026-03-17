@@ -1,0 +1,131 @@
+"use client";
+
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
+import type { Task } from "@/lib/tasks";
+import { TaskEntry } from "@/components/tasks/TaskEntry";
+import { reorderPendingTasks } from "@/actions/tasks";
+
+type TaskListDndProps = {
+  tasks: Task[];
+};
+
+export function TaskListDnd({ tasks }: TaskListDndProps) {
+  const [optimisticTasks, setOptimisticTasks] = useState(tasks);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setOptimisticTasks(tasks);
+  }, [tasks]);
+
+  const ids = useMemo(() => optimisticTasks.map((t) => t.id), [optimisticTasks]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 4 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const activeId = String(event.active.id);
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId || activeId === overId) return;
+
+    const oldIndex = ids.indexOf(activeId);
+    const newIndex = ids.indexOf(overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const previous = optimisticTasks;
+    const next = arrayMove(previous, oldIndex, newIndex);
+
+    setOptimisticTasks(next);
+
+    startTransition(async () => {
+      try {
+        await reorderPendingTasks(next.map((t) => t.id));
+      } catch (error) {
+        console.error("Reorder failed", error);
+        setOptimisticTasks(previous);
+      }
+    });
+  }
+
+  return (
+    <div className={isPending ? "opacity-70" : undefined}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {optimisticTasks.map((task, index) => (
+              <SortableTaskEntry key={task.id} taskId={task.id}>
+                <TaskEntry index={index} text={task.title} />
+              </SortableTaskEntry>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
+
+function SortableTaskEntry({
+  taskId,
+  children,
+}: {
+  taskId: string;
+  children: ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: taskId });
+
+  const style: CSSProperties = {
+    transform: transform
+      ? `tranzinc3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`cursor-grab active:cursor-grabbing ${
+        isDragging ? "opacity-60" : ""
+      }`}
+      {...attributes}
+      {...listeners}
+    >
+      {children}
+    </div>
+  );
+}

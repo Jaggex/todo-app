@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
-import { addTask } from "@/lib/tasks";
+import { addTask, reorderPendingTasksById } from "@/lib/tasks";
 
 export type CreateTaskState = {
   ok: boolean;
@@ -45,4 +46,16 @@ export async function createTask(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/completed");
   redirect("/");
+}
+
+const reorderSchema = z
+  .array(z.string().min(1))
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, "Duplicate task ids");
+
+export async function reorderPendingTasks(orderedPendingTaskIds: string[]) {
+  const ids = reorderSchema.parse(orderedPendingTaskIds);
+
+  await reorderPendingTasksById(ids);
+  revalidatePath("/");
 }

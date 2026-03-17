@@ -7,7 +7,7 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside className="border-r border-dashed border-gray-200 bg-slate-900 p-4">
+    <aside className="border-r border-dashed border-gray-200 bg-zinc-900 p-4">
 
       <nav className="space-y-1">
         {navItems.map((item) => (

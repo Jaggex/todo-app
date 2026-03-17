@@ -1,6 +1,6 @@
 export function Topbar() {
   return (
-    <header className="grid h-14 grid-cols-[16rem_1fr_16rem] border-b border-dashed border-gray-200 bg-slate-900">
+    <header className="grid h-14 grid-cols-[16rem_1fr_16rem] border-b border-dashed border-gray-200 bg-zinc-900">
       <div className="flex items-center justify-center border-r border-dashed border-gray-200 px-4">
         <div className="text-sm font-semibold tracking-tight text-white">Worktasks</div>
       </div>

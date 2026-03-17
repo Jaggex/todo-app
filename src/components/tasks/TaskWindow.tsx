@@ -14,7 +14,7 @@ export function TaskWindow({
   children,
 }: TaskWindowProps) {
   return (
-    <section className="rounded-lg bg-slate-800">
+    <section className="rounded-lg bg-zinc-800">
       <div className="flex items-center justify-between gap-4 p-4">
         <div className="space-y-1">
           <h1 className="text-xl font-semibold text-white">{title}</h1>
