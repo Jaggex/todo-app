@@ -27,11 +27,6 @@
   {
     "id": "t1",
     "title": "Next create: task list + drag/drop.",
-    "completed": false
-  },
-  {
-    "id": "t4",
-    "title": "placeholder",
     "completed": true
   }
 ]

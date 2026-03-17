@@ -11,6 +11,12 @@ export function TaskEntryActions({
   onCompletedChange,
   onDelete,
 }: TaskEntryActionsProps) {
+  function handleDelete() {
+    const ok = window.confirm("Delete this task?");
+    if (!ok) return;
+    onDelete();
+  }
+
   return (
     <div className="flex items-center gap-3">
       <label
@@ -29,7 +35,7 @@ export function TaskEntryActions({
 
       <button
         type="button"
-        onClick={onDelete}
+        onClick={handleDelete}
         onPointerDown={(e) => e.stopPropagation()}
         className="rounded-md bg-zinc-900 px-2 py-1 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black"
       >
