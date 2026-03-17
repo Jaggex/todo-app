@@ -10,7 +10,7 @@ type TaskEntryProps = {
 export function TaskEntry({
   index,
   text,
-  textClassName = "text-sm text-gray-300",
+  textClassName = "text-sm text-gray-100",
   rightSlot,
 }: TaskEntryProps) {
   const backgroundClass = index % 2 === 0 ? "bg-zinc-700" : "bg-zinc-800";

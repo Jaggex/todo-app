@@ -22,7 +22,8 @@ import {
 
 import type { Task } from "@/lib/tasks";
 import { TaskEntry } from "@/components/tasks/TaskEntry";
-import { reorderPendingTasks } from "@/actions/tasks";
+import { TaskEntryActions } from "@/components/tasks/TaskEntryActions";
+import { deleteTask, reorderPendingTasks, setTaskCompleted } from "@/actions/tasks";
 
 type TaskListDndProps = {
   tasks: Task[];
@@ -71,6 +72,36 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
     });
   }
 
+  function handleCompletedChange(taskId: string, completed: boolean) {
+    const previous = optimisticTasks;
+    setOptimisticTasks((current) =>
+      current.map((t) => (t.id === taskId ? { ...t, completed } : t))
+    );
+
+    startTransition(async () => {
+      try {
+        await setTaskCompleted(taskId, completed);
+      } catch (error) {
+        console.error("Set completed failed", error);
+        setOptimisticTasks(previous);
+      }
+    });
+  }
+
+  function handleDelete(taskId: string) {
+    const previous = optimisticTasks;
+    setOptimisticTasks((current) => current.filter((t) => t.id !== taskId));
+
+    startTransition(async () => {
+      try {
+        await deleteTask(taskId);
+      } catch (error) {
+        console.error("Delete failed", error);
+        setOptimisticTasks(previous);
+      }
+    });
+  }
+
   return (
     <div className={isPending ? "opacity-70" : undefined}>
       <DndContext
@@ -82,7 +113,19 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
           <div className="space-y-2">
             {optimisticTasks.map((task, index) => (
               <SortableTaskEntry key={task.id} taskId={task.id}>
-                <TaskEntry index={index} text={task.title} />
+                <TaskEntry
+                  index={index}
+                  text={task.title}
+                  rightSlot={
+                    <TaskEntryActions
+                      completed={task.completed}
+                      onCompletedChange={(completed) =>
+                        handleCompletedChange(task.id, completed)
+                      }
+                      onDelete={() => handleDelete(task.id)}
+                    />
+                  }
+                />
               </SortableTaskEntry>
             ))}
           </div>
@@ -110,7 +153,7 @@ function SortableTaskEntry({
 
   const style: CSSProperties = {
     transform: transform
-      ? `tranzinc3d(${transform.x}px, ${transform.y}px, 0)`
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
       : undefined,
     transition,
   };

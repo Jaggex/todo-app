@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { addTask, reorderPendingTasksById } from "@/lib/tasks";
+import {
+  addTask,
+  deleteTaskById,
+  reorderPendingTasksById,
+  setTaskCompletedById,
+} from "@/lib/tasks";
 
 export type CreateTaskState = {
   ok: boolean;
@@ -58,4 +63,23 @@ export async function reorderPendingTasks(orderedPendingTaskIds: string[]) {
 
   await reorderPendingTasksById(ids);
   revalidatePath("/");
+}
+
+const taskIdSchema = z.string().min(1);
+
+export async function setTaskCompleted(taskId: string, completed: boolean) {
+  const id = taskIdSchema.parse(taskId);
+  const isCompleted = z.boolean().parse(completed);
+
+  await setTaskCompletedById(id, isCompleted);
+  revalidatePath("/");
+  revalidatePath("/completed");
+}
+
+export async function deleteTask(taskId: string) {
+  const id = taskIdSchema.parse(taskId);
+
+  await deleteTaskById(id);
+  revalidatePath("/");
+  revalidatePath("/completed");
 }

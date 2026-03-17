@@ -90,3 +90,18 @@ export async function reorderPendingTasksById(orderedPendingTaskIds: string[]) {
 
   await writeTasksToDb([...nextPending, ...completed]);
 }
+
+export async function setTaskCompletedById(taskId: string, completed: boolean) {
+  const tasks = await readTasksFromDb();
+  const next = tasks.map((task) =>
+    task.id === taskId ? { ...task, completed } : task
+  );
+
+  await writeTasksToDb(next);
+}
+
+export async function deleteTaskById(taskId: string) {
+  const tasks = await readTasksFromDb();
+  const next = tasks.filter((task) => task.id !== taskId);
+  await writeTasksToDb(next);
+}
