@@ -7,6 +7,7 @@ import "@/data/tasks.json";
 export type Task = {
   id: string;
   title: string;
+  message?: string;
   completed: boolean;
 };
 
@@ -18,6 +19,7 @@ function isTask(value: unknown): value is Task {
   return (
     typeof record.id === "string" &&
     typeof record.title === "string" &&
+    (typeof record.message === "undefined" || typeof record.message === "string") &&
     typeof record.completed === "boolean"
   );
 }
@@ -52,16 +54,19 @@ export async function getCompletedTasks() {
   return tasks.filter((task) => task.completed);
 }
 
-export async function addTask(title: string) {
+export async function addTask(title: string, message?: string) {
   const trimmedTitle = title.trim();
   if (!trimmedTitle) {
     throw new Error("Title is required");
   }
 
+  const trimmedMessage = typeof message === "string" ? message.trim() : "";
+
   const tasks = await readTasksFromDb();
   const newTask: Task = {
     id: randomUUID(),
     title: trimmedTitle,
+    message: trimmedMessage ? trimmedMessage : undefined,
     completed: false,
   };
 

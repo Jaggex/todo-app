@@ -28,5 +28,11 @@
     "id": "t1",
     "title": "Next create: task list + drag/drop.",
     "completed": true
+  },
+  {
+    "id": "72169488-a5a5-44ce-8018-a50b631935c5",
+    "title": "Testi otsikko",
+    "message": "testi teksti",
+    "completed": false
   }
 ]

@@ -14,10 +14,28 @@ type TaskListProps = {
 export function TaskList({ tasks }: TaskListProps) {
   const [optimisticTasks, setOptimisticTasks] = useState(tasks);
   const [isPending, startTransition] = useTransition();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setOptimisticTasks(tasks);
+
+    setExpandedIds((current) => {
+      const next = new Set<string>();
+      for (const task of tasks) {
+        if (current.has(task.id)) next.add(task.id);
+      }
+      return next;
+    });
   }, [tasks]);
+
+  function toggleExpanded(taskId: string) {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }
 
   function handleCompletedChange(taskId: string, completed: boolean) {
     const previous = optimisticTasks;
@@ -56,7 +74,10 @@ export function TaskList({ tasks }: TaskListProps) {
           <TaskEntry
             key={task.id}
             index={index}
-            text={task.title}
+            title={task.title}
+            message={task.message}
+            expanded={expandedIds.has(task.id)}
+            onToggleExpanded={() => toggleExpanded(task.id)}
             rightSlot={
               <TaskEntryActions
                 completed={task.completed}

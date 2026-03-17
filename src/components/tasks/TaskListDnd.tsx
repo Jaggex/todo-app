@@ -32,10 +32,28 @@ type TaskListDndProps = {
 export function TaskListDnd({ tasks }: TaskListDndProps) {
   const [optimisticTasks, setOptimisticTasks] = useState(tasks);
   const [isPending, startTransition] = useTransition();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setOptimisticTasks(tasks);
+
+    setExpandedIds((current) => {
+      const next = new Set<string>();
+      for (const task of tasks) {
+        if (current.has(task.id)) next.add(task.id);
+      }
+      return next;
+    });
   }, [tasks]);
+
+  function toggleExpanded(taskId: string) {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }
 
   const ids = useMemo(() => optimisticTasks.map((t) => t.id), [optimisticTasks]);
 
@@ -115,7 +133,10 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
               <SortableTaskEntry key={task.id} taskId={task.id}>
                 <TaskEntry
                   index={index}
-                  text={task.title}
+                  title={task.title}
+                  message={task.message}
+                  expanded={expandedIds.has(task.id)}
+                  onToggleExpanded={() => toggleExpanded(task.id)}
                   rightSlot={
                     <TaskEntryActions
                       completed={task.completed}
