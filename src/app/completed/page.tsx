@@ -1,10 +1,19 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+
 import { TaskWindow } from "@/components/tasks/TaskWindow";
 import { TaskList } from "@/components/tasks/TaskList";
 import { getCompletedTasks } from "@/lib/tasks";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompletedPage() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/signin");
+  }
+
   const tasks = await getCompletedTasks();
 
   return (

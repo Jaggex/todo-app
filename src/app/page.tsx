@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
 
 import { TaskWindow } from "@/components/tasks/TaskWindow";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { TaskListDnd } from "@/components/tasks/TaskListDnd";
 import { getPendingTasks } from "@/lib/tasks";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +15,11 @@ export default async function Home({
 }: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/signin");
+  }
+
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const isNewOpen = resolvedSearchParams?.new === "1";
   const tasks = await getPendingTasks();
