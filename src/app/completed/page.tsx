@@ -9,7 +9,13 @@ export default async function CompletedPage() {
 
   return (
     <TaskWindow title="Completed Tasks">
-      <TaskList tasks={tasks} />
+      {tasks.length === 0 ? (
+        <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
+          No completed tasks.
+        </div>
+      ) : (
+        <TaskList tasks={tasks} />
+      )}
     </TaskWindow>
   );
 }

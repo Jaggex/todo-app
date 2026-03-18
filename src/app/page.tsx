@@ -31,7 +31,13 @@ export default async function Home({
           </Link>
         }
       >
-        <TaskListDnd tasks={tasks} />
+        {tasks.length === 0 ? (
+          <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
+            No pending tasks.
+          </div>
+        ) : (
+          <TaskListDnd tasks={tasks} />
+        )}
       </TaskWindow>
     </div>
   );

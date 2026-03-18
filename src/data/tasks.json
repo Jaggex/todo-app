@@ -1,38 +1,8 @@
 [
   {
-    "id": "t3",
-    "title": "lolodsghdflolo",
+    "id": "d7ceb7c2-3ac8-4687-9cab-2ed7346fa457",
+    "title": "otp ohje jossei saa tekstaria",
+    "message": "Tee 20ms viiveellä oleva ilmoitus että tarkastaa roskaposti kansion",
     "completed": true
-  },
-  {
-    "id": "5530a5a3-7e91-4f6f-a97c-b5dd6c376ec2",
-    "title": "lololol",
-    "completed": true
-  },
-  {
-    "id": "t2",
-    "title": "Test placeholder",
-    "completed": true
-  },
-  {
-    "id": "7a18ebdf-f82c-4998-a8e2-97d3022cca8e",
-    "title": "terve terve",
-    "completed": false
-  },
-  {
-    "id": "b12dde12-28e3-412f-94fd-66b918805407",
-    "title": "testitestitesti",
-    "completed": false
-  },
-  {
-    "id": "t1",
-    "title": "Next create: task list + drag/drop.",
-    "completed": true
-  },
-  {
-    "id": "72169488-a5a5-44ce-8018-a50b631935c5",
-    "title": "Testi otsikko",
-    "message": "testi teksti",
-    "completed": false
   }
 ]

@@ -28,9 +28,9 @@ export function TaskEntry({
         onClick={onToggleExpanded}
         className="min-w-0 flex-1 text-left"
       >
-        <div className="text-sm text-gray-100">{title}</div>
+        <div className="text-md text-gray-100">{title}</div>
         {expanded && message ? (
-          <div className="mt-1 text-xs text-zinc-300 whitespace-pre-wrap">
+          <div className="text-xs text-zinc-100 mt-3 whitespace-pre-wrap">
             {message}
           </div>
         ) : null}
