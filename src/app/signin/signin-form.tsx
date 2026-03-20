@@ -35,7 +35,8 @@ export function SignInForm() {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold text-white">Sign in</h1>
         <p className="text-sm text-zinc-300">
-          Use the dev user from <span className="text-zinc-200">src/data/users.json</span>.
+          Use the dev user from <span className="text-zinc-200">DEV_AUTH_EMAIL</span> /{" "}
+          <span className="text-zinc-200">DEV_AUTH_PASSWORD</span> in .env.local.
         </p>
       </div>
 

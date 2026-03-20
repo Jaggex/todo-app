@@ -1,6 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
@@ -10,29 +7,6 @@ type DevUser = {
   email: string;
   password: string;
 };
-
-const usersFilePath = path.join(process.cwd(), "src", "data", "users.json");
-
-async function readUsersFromDb(): Promise<DevUser[]> {
-  try {
-    const raw = await readFile(usersFilePath, "utf8");
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-
-    const schema = z.array(
-      z.object({
-        id: z.string().min(1),
-        email: z.string().email(),
-        password: z.string().min(1),
-      })
-    );
-
-    const result = schema.safeParse(parsed);
-    return result.success ? result.data : [];
-  } catch {
-    return [];
-  }
-}
 
 function readUserFromEnv(): DevUser | null {
   const schema = z.object({
@@ -54,21 +28,6 @@ function readUserFromEnv(): DevUser | null {
     email: result.data.DEV_AUTH_EMAIL,
     password: result.data.DEV_AUTH_PASSWORD,
   };
-}
-
-async function readAllUsers(): Promise<DevUser[]> {
-  const [dbUsers, envUser] = await Promise.all([
-    readUsersFromDb(),
-    Promise.resolve(readUserFromEnv()),
-  ]);
-
-  if (!envUser) return dbUsers;
-
-  // If the same email exists in the JSON DB, the env user wins.
-  const withoutSameEmail = dbUsers.filter(
-    (u) => u.email.toLowerCase() !== envUser.email.toLowerCase()
-  );
-  return [envUser, ...withoutSameEmail];
 }
 
 const credentialsSchema = z.object({
@@ -99,13 +58,14 @@ export const authOptions: NextAuthOptions = {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const users = await readAllUsers();
-        const user = users.find(
-          (u) => u.email.toLowerCase() === parsed.data.email.toLowerCase()
-        );
+        const user = readUserFromEnv();
         if (!user) return null;
 
-        // Dev-only: plain-text password from JSON.
+        if (user.email.toLowerCase() !== parsed.data.email.toLowerCase()) {
+          return null;
+        }
+
+        // Dev-only: plain-text password from .env.local.
         // Replace with hashed passwords when you move to Mongo.
         if (user.password !== parsed.data.password) return null;
 
