@@ -13,8 +13,12 @@ export default async function CompletedPage() {
   if (!session) {
     redirect("/signin");
   }
+  const ownerKey = session.user?.email;
+  if (!ownerKey) {
+    redirect("/signin");
+  }
 
-  const tasks = await getCompletedTasks();
+  const tasks = await getCompletedTasks(ownerKey);
 
   return (
     <TaskWindow title="Completed Tasks">

@@ -3,6 +3,14 @@
     "id": "d7ceb7c2-3ac8-4687-9cab-2ed7346fa457",
     "title": "otp ohje jossei saa tekstaria",
     "message": "Tee 20ms viiveellä oleva ilmoitus että tarkastaa roskaposti kansion",
-    "completed": true
+    "completed": true,
+    "ownerKey": "jaggeql@gmail.com"
+  },
+  {
+    "id": "23f4f63d-1552-4f8f-8c58-f41402726db2",
+    "title": "testi otsikko",
+    "message": "testi testi testi",
+    "completed": false,
+    "ownerKey": "jaggeql@gmail.com"
   }
 ]
