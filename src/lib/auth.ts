@@ -47,6 +47,22 @@ if (!nextAuthSecret && process.env.NODE_ENV !== "test") {
 export const authOptions: NextAuthOptions = {
   secret: nextAuthSecret,
   session: { strategy: "jwt" },
+  callbacks: {
+    jwt: async ({ token, user }) => {
+      if (user?.id) {
+        token.userId = user.id;
+      }
+
+      return token;
+    },
+    session: async ({ session, token }) => {
+      if (session.user && typeof token.userId === "string") {
+        session.user.id = token.userId;
+      }
+
+      return session;
+    },
+  },
   providers: [
     Credentials({
       name: "Credentials",

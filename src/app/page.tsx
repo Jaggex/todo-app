@@ -19,14 +19,14 @@ export default async function Home({
   if (!session) {
     redirect("/signin");
   }
-  const ownerKey = session.user?.email;
-  if (!ownerKey) {
+  const ownerId = session.user?.id;
+  if (!ownerId) {
     redirect("/signin");
   }
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const isNewOpen = resolvedSearchParams?.new === "1";
-  const tasks = await getPendingTasks(ownerKey);
+  const tasks = await getPendingTasks(ownerId);
 
   return (
     <div className="space-y-3">

@@ -21,12 +21,12 @@ async function requireSession() {
   return session;
 }
 
-function requireOwnerKey(session: Awaited<ReturnType<typeof requireSession>>) {
-  const email = session.user?.email;
-  if (!email) {
+function requireOwnerId(session: Awaited<ReturnType<typeof requireSession>>) {
+  const userId = session.user?.id;
+  if (!userId) {
     redirect("/signin");
   }
-  return email;
+  return userId;
 }
 
 export type CreateTaskState = {
@@ -39,7 +39,7 @@ export async function createTaskAction(
   formData: FormData
 ): Promise<CreateTaskState> {
   const session = await requireSession();
-  const ownerKey = requireOwnerKey(session);
+  const ownerId = requireOwnerId(session);
   const rawTitle = formData.get("title");
   const title = typeof rawTitle === "string" ? rawTitle : "";
   const rawMessage = formData.get("message");
@@ -50,7 +50,7 @@ export async function createTaskAction(
   }
 
   try {
-    await addTask(ownerKey, title, message);
+    await addTask(ownerId, title, message);
   } catch {
     return { ok: false, message: "Could not save task." };
   }
@@ -63,7 +63,7 @@ export async function createTaskAction(
 
 export async function createTask(formData: FormData): Promise<void> {
   const session = await requireSession();
-  const ownerKey = requireOwnerKey(session);
+  const ownerId = requireOwnerId(session);
   const rawTitle = formData.get("title");
   const title = typeof rawTitle === "string" ? rawTitle : "";
   const rawMessage = formData.get("message");
@@ -73,7 +73,7 @@ export async function createTask(formData: FormData): Promise<void> {
     redirect("/?new=1");
   }
 
-  await addTask(ownerKey, title, message);
+  await addTask(ownerId, title, message);
   revalidatePath("/");
   revalidatePath("/completed");
   redirect("/");
@@ -86,10 +86,10 @@ const reorderSchema = z
 
 export async function reorderPendingTasks(orderedPendingTaskIds: string[]) {
   const session = await requireSession();
-  const ownerKey = requireOwnerKey(session);
+  const ownerId = requireOwnerId(session);
   const ids = reorderSchema.parse(orderedPendingTaskIds);
 
-  await reorderPendingTasksById(ownerKey, ids);
+  await reorderPendingTasksById(ownerId, ids);
   revalidatePath("/");
 }
 
@@ -97,21 +97,21 @@ const taskIdSchema = z.string().min(1);
 
 export async function setTaskCompleted(taskId: string, completed: boolean) {
   const session = await requireSession();
-  const ownerKey = requireOwnerKey(session);
+  const ownerId = requireOwnerId(session);
   const id = taskIdSchema.parse(taskId);
   const isCompleted = z.boolean().parse(completed);
 
-  await setTaskCompletedById(ownerKey, id, isCompleted);
+  await setTaskCompletedById(ownerId, id, isCompleted);
   revalidatePath("/");
   revalidatePath("/completed");
 }
 
 export async function deleteTask(taskId: string) {
   const session = await requireSession();
-  const ownerKey = requireOwnerKey(session);
+  const ownerId = requireOwnerId(session);
   const id = taskIdSchema.parse(taskId);
 
-  await deleteTaskById(ownerKey, id);
+  await deleteTaskById(ownerId, id);
   revalidatePath("/");
   revalidatePath("/completed");
 }
