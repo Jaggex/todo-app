@@ -35,8 +35,7 @@ export function SignInForm() {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold text-white">Sign in</h1>
         <p className="text-sm text-zinc-300">
-          Use the dev user from <span className="text-zinc-200">DEV_AUTH_EMAIL</span> /{" "}
-          <span className="text-zinc-200">DEV_AUTH_PASSWORD</span> in .env.local.
+          Sign in with an account stored in MongoDB.
         </p>
       </div>
 
@@ -75,7 +74,10 @@ export function SignInForm() {
         </button>
       </form>
 
-      <div className="text-xs text-zinc-400">
+      <div className="flex items-center justify-between text-xs text-zinc-400">
+        <Link className="hover:text-white" href="/signup">
+          Create account
+        </Link>
         <Link className="hover:text-white" href="/">
           Back
         </Link>

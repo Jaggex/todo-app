@@ -14,7 +14,6 @@ export type Task = {
 
 type TaskDocument = Task & {
   order: number;
-  ownerKey?: string;
 };
 
 let ensureMongoTasksReadyPromise: Promise<void> | undefined;
@@ -42,24 +41,6 @@ function toTask(task: TaskDocument): Task {
   };
 }
 
-async function migrateOwnerFieldIfNeeded(collection: Collection<TaskDocument>) {
-  const ownerId = process.env.DEV_AUTH_USER_ID?.trim();
-  const ownerEmail = process.env.DEV_AUTH_EMAIL?.trim().toLowerCase();
-
-  if (!ownerId || !ownerEmail) return;
-
-  await collection.updateMany(
-    {
-      ownerKey: ownerEmail,
-      $or: [{ ownerId: { $exists: false } }, { ownerId: "" }],
-    },
-    {
-      $set: { ownerId },
-      $unset: { ownerKey: "" },
-    }
-  );
-}
-
 async function ensureMongoTasksReady(): Promise<void> {
   if (!ensureMongoTasksReadyPromise) {
     ensureMongoTasksReadyPromise = (async () => {
@@ -67,7 +48,6 @@ async function ensureMongoTasksReady(): Promise<void> {
 
       await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ ownerId: 1, completed: 1, order: 1 });
-      await migrateOwnerFieldIfNeeded(collection);
     })();
   }
 
