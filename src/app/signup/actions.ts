@@ -8,6 +8,7 @@ import { createUser, findUserByEmail } from "@/lib/users";
 export type SignUpState = {
   ok: boolean;
   message?: string;
+  redirectTo?: string;
 };
 
 const signUpSchema = z
@@ -49,7 +50,11 @@ export async function signUpAction(
       email: parsed.data.email,
       passwordHash,
     });
-    return { ok: true, message: "Account created. You can now sign in." };
+    return {
+      ok: true,
+      message: "Account created. Redirecting to sign in...",
+      redirectTo: "/signin?created=1",
+    };
   } catch {
     return { ok: false, message: "Could not create account." };
   }

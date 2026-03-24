@@ -2,13 +2,16 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export function SignInForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const accountCreated = searchParams.get("created") === "1";
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +41,12 @@ export function SignInForm() {
           Sign in with an account stored in MongoDB.
         </p>
       </div>
+
+      {accountCreated ? (
+        <div className="rounded-md bg-emerald-950 px-3 py-2 text-sm text-emerald-200">
+          Account created. Sign in with your new credentials.
+        </div>
+      ) : null}
 
       {error ? (
         <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-red-300">

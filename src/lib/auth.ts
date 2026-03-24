@@ -28,11 +28,19 @@ export const authOptions: NextAuthOptions = {
         token.userId = user.id;
       }
 
+      if (typeof user?.role === "string") {
+        token.userRole = user.role;
+      }
+
       return token;
     },
     session: async ({ session, token }) => {
       if (session.user && typeof token.userId === "string") {
         session.user.id = token.userId;
+      }
+
+      if (session.user && typeof token.userRole === "string") {
+        session.user.role = token.userRole as "user" | "admin";
       }
 
       return session;
@@ -62,6 +70,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.email,
+          role: user.role,
         };
       },
     }),

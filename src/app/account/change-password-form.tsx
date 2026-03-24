@@ -1,31 +1,28 @@
 "use client";
 
-import Link from "next/link";
-import { useActionState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
 
-import { signUpAction, type SignUpState } from "./actions";
+import {
+  changePasswordAction,
+  type ChangePasswordState,
+} from "./actions";
 
-const initialState: SignUpState = {
+const initialState: ChangePasswordState = {
   ok: false,
 };
 
-export function SignUpForm() {
-  const router = useRouter();
-  const [state, formAction, isPending] = useActionState(signUpAction, initialState);
-
-  useEffect(() => {
-    if (state.ok && state.redirectTo) {
-      router.replace(state.redirectTo);
-    }
-  }, [router, state.ok, state.redirectTo]);
+export function ChangePasswordForm() {
+  const [state, formAction, isPending] = useActionState(
+    changePasswordAction,
+    initialState
+  );
 
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Create account</h1>
+        <h2 className="text-lg font-semibold text-white">Change password</h2>
         <p className="text-sm text-zinc-300">
-          Create a Mongo-backed user account for this workspace.
+          Update the password for your current account.
         </p>
       </div>
 
@@ -41,17 +38,17 @@ export function SignUpForm() {
 
       <form action={formAction} className="space-y-3">
         <input
-          name="email"
-          type="email"
-          placeholder="Email"
+          name="currentPassword"
+          type="password"
+          placeholder="Current password"
           className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
           required
           disabled={isPending}
         />
         <input
-          name="password"
+          name="newPassword"
           type="password"
-          placeholder="Password"
+          placeholder="New password"
           className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
           required
           minLength={8}
@@ -60,7 +57,7 @@ export function SignUpForm() {
         <input
           name="confirmPassword"
           type="password"
-          placeholder="Confirm password"
+          placeholder="Confirm new password"
           className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
           required
           minLength={8}
@@ -72,15 +69,9 @@ export function SignUpForm() {
           className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-zinc-200 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
           disabled={isPending}
         >
-          {isPending ? "Creating account…" : "Create account"}
+          {isPending ? "Updating password..." : "Update password"}
         </button>
       </form>
-
-      <div className="text-xs text-zinc-400">
-        <Link className="hover:text-white" href="/signin">
-          Back to sign in
-        </Link>
-      </div>
     </div>
   );
 }

@@ -19,6 +19,12 @@ export async function Topbar() {
         {session?.user?.email ? (
           <div className="flex items-center gap-3">
             <div className="text-xs text-white">{session.user.email}</div>
+            <Link
+              className="text-xs bg-zinc-800 px-3 py-2 rounded-md text-zinc-300 hover:text-black hover:bg-zinc-100"
+              href="/account"
+            >
+              Account
+            </Link>
             <SignOutButton
               className="ml-2 text-xs bg-zinc-800 px-3 py-2 rounded-md text-zinc-300 hover:text-black hover:bg-zinc-100"
               callbackUrl="/signin"

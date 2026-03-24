@@ -8,6 +8,7 @@ export type User = {
   id: string;
   email: string;
   passwordHash: string;
+  role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;
 };
@@ -15,6 +16,7 @@ export type User = {
 export type CreateUserInput = {
   email: string;
   passwordHash: string;
+  role?: User["role"];
 };
 
 type UserDocument = User;
@@ -65,6 +67,7 @@ export async function findUserById(id: string): Promise<User | null> {
 export async function createUser(input: CreateUserInput): Promise<User> {
   const email = normalizeEmail(input.email);
   const passwordHash = input.passwordHash.trim();
+  const role = input.role ?? "user";
 
   if (!isNonEmptyString(email)) {
     throw new Error("Email is required");
@@ -87,6 +90,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
     id: randomUUID(),
     email,
     passwordHash,
+    role,
     createdAt: now,
     updatedAt: now,
   };
