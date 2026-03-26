@@ -4,11 +4,13 @@ import type { Collection } from "mongodb";
 
 import { getDb } from "@/lib/mongodb";
 
+export type UserRole = "user" | "admin";
+
 export type User = {
   id: string;
   email: string;
   passwordHash: string;
-  role: "user" | "admin";
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -16,10 +18,12 @@ export type User = {
 export type CreateUserInput = {
   email: string;
   passwordHash: string;
-  role?: User["role"];
+  role?: UserRole;
 };
 
-type UserDocument = User;
+type UserDocument = Omit<User, "role"> & {
+  role?: UserRole;
+};
 
 let ensureUsersReadyPromise: Promise<void> | undefined;
 
@@ -36,12 +40,36 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function normalizeRole(role: UserDocument["role"]): UserRole {
+  return role === "admin" ? "admin" : "user";
+}
+
+function toUser(user: UserDocument): User {
+  return {
+    id: user.id,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    role: normalizeRole(user.role),
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
 async function ensureUsersReady(): Promise<void> {
   if (!ensureUsersReadyPromise) {
     ensureUsersReadyPromise = (async () => {
       const collection = await getUsersCollection();
       await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ email: 1 }, { unique: true });
+      await collection.updateMany(
+        {
+          $or: [
+            { role: { $exists: false } },
+            { role: { $nin: ["user", "admin"] } },
+          ],
+        },
+        { $set: { role: "user" } }
+      );
     })();
   }
 
@@ -53,7 +81,8 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
   await ensureUsersReady();
   const collection = await getUsersCollection();
-  return collection.findOne({ email: normalizeEmail(email) });
+  const user = await collection.findOne({ email: normalizeEmail(email) });
+  return user ? toUser(user) : null;
 }
 
 export async function findUserById(id: string): Promise<User | null> {
@@ -61,7 +90,8 @@ export async function findUserById(id: string): Promise<User | null> {
 
   await ensureUsersReady();
   const collection = await getUsersCollection();
-  return collection.findOne({ id: id.trim() });
+  const user = await collection.findOne({ id: id.trim() });
+  return user ? toUser(user) : null;
 }
 
 export async function createUser(input: CreateUserInput): Promise<User> {
@@ -97,6 +127,24 @@ export async function createUser(input: CreateUserInput): Promise<User> {
 
   await collection.insertOne(user);
   return user;
+}
+
+export async function updateUserRole(userId: string, role: UserRole): Promise<void> {
+  if (!isNonEmptyString(userId)) {
+    throw new Error("User id is required");
+  }
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  await collection.updateOne(
+    { id: userId.trim() },
+    {
+      $set: {
+        role,
+        updatedAt: new Date(),
+      },
+    }
+  );
 }
 
 export async function updateUserPasswordHash(

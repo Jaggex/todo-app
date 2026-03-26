@@ -28,8 +28,13 @@ export const authOptions: NextAuthOptions = {
         token.userId = user.id;
       }
 
-      if (typeof user?.role === "string") {
-        token.userRole = user.role;
+      const userRole =
+        user && "role" in user && typeof user.role === "string"
+          ? user.role
+          : undefined;
+
+      if (userRole === "user" || userRole === "admin") {
+        token.userRole = userRole;
       }
 
       return token;
