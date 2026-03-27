@@ -94,6 +94,13 @@ export async function findUserById(id: string): Promise<User | null> {
   return user ? toUser(user) : null;
 }
 
+export async function listUsers(): Promise<User[]> {
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const users = await collection.find({}).sort({ createdAt: 1, email: 1 }).toArray();
+  return users.map(toUser);
+}
+
 export async function createUser(input: CreateUserInput): Promise<User> {
   const email = normalizeEmail(input.email);
   const passwordHash = input.passwordHash.trim();

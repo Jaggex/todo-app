@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 
 import { authOptions } from "@/lib/auth";
-import { SignOutButton } from "@/components/auth/SignOutButton";
+import { UserMenu } from "@/components/app-shell/UserMenu";
 
 export async function Topbar() {
   const session = await getServerSession(authOptions);
@@ -15,21 +15,9 @@ export async function Topbar() {
 
       <div className="flex items-center px-6" />
 
-      <div className="flex items-center justify-center border-l border-dashed border-gray-200 px-4">
+      <div className="flex items-center justify-end border-l border-dashed border-gray-200 px-4">
         {session?.user?.email ? (
-          <div className="flex items-center gap-3">
-            <div className="text-xs text-white">{session.user.email}</div>
-            <Link
-              className="text-xs bg-zinc-800 px-3 py-2 rounded-md text-zinc-300 hover:text-black hover:bg-zinc-100"
-              href="/account"
-            >
-              Account
-            </Link>
-            <SignOutButton
-              className="ml-2 text-xs bg-zinc-800 px-3 py-2 rounded-md text-zinc-300 hover:text-black hover:bg-zinc-100"
-              callbackUrl="/signin"
-            />
-          </div>
+          <UserMenu email={session.user.email} role={session.user.role} />
         ) : (
           <Link className="text-xs text-white" href="/signin">
             Signed out
