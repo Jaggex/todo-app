@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { findUserById, updateUserPasswordHash } from "@/lib/users";
+import { deleteUser, findUserById, updateUserPasswordHash } from "@/lib/users";
 
 export type ChangePasswordState = {
   ok: boolean;
@@ -64,4 +64,40 @@ export async function changePasswordAction(
   await updateUserPasswordHash(user.id, nextPasswordHash);
 
   return { ok: true, message: "Password updated." };
+}
+
+export type DeleteAccountState = {
+  ok: boolean;
+  message?: string;
+  redirectTo?: string;
+};
+
+export async function deleteAccountAction(
+  _prevState: DeleteAccountState,
+  formData: FormData
+): Promise<DeleteAccountState> {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return { ok: false, message: "You must be signed in." };
+  }
+
+  const password = String(formData.get("password") ?? "");
+  if (!password) {
+    return { ok: false, message: "Enter your password to confirm." };
+  }
+
+  const user = await findUserById(userId);
+  if (!user) {
+    return { ok: false, message: "User account was not found." };
+  }
+
+  const validPassword = await verifyPassword(password, user.passwordHash);
+  if (!validPassword) {
+    return { ok: false, message: "Password is incorrect." };
+  }
+
+  await deleteUser(user.id);
+  return { ok: true, redirectTo: "/signin" };
 }

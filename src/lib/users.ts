@@ -178,3 +178,13 @@ export async function updateUserPasswordHash(
     }
   );
 }
+
+export async function deleteUser(userId: string): Promise<void> {
+  if (!isNonEmptyString(userId)) {
+    throw new Error("User id is required");
+  }
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  await collection.deleteOne({ id: userId.trim() });
+}

@@ -15,13 +15,20 @@ export async function proxy(request: NextRequest) {
   }
 
   const token = await getToken({ req: request });
-  if (token) {
-    return NextResponse.next();
+
+  if (!token) {
+    const signInUrl = request.nextUrl.clone();
+    signInUrl.pathname = "/signin";
+    return NextResponse.redirect(signInUrl);
   }
 
-  const signInUrl = request.nextUrl.clone();
-  signInUrl.pathname = "/signin";
-  return NextResponse.redirect(signInUrl);
+  if (pathname.startsWith("/admin") && token.userRole !== "admin") {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    return NextResponse.redirect(homeUrl);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
