@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { sendVerificationEmail } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
 import { createUser, findUserByEmail } from "@/lib/users";
 
@@ -46,13 +47,20 @@ export async function signUpAction(
 
   try {
     const passwordHash = await hashPassword(parsed.data.password);
-    await createUser({
+    const user = await createUser({
       email: parsed.data.email,
       passwordHash,
     });
+
+    try {
+      await sendVerificationEmail(user.email, user.verificationToken!);
+    } catch (emailError) {
+      console.error("[signup] Failed to send verification email:", emailError);
+    }
+
     return {
       ok: true,
-      message: "Account created. Redirecting to sign in...",
+      message: "Account created. Check your email to verify your address.",
       redirectTo: "/signin?created=1",
     };
   } catch {

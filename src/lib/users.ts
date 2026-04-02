@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import type { Collection } from "mongodb";
 
@@ -11,6 +11,10 @@ export type User = {
   email: string;
   passwordHash: string;
   role: UserRole;
+  emailVerified: boolean;
+  verificationToken: string | null;
+  resetToken: string | null;
+  resetTokenExpiry: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -21,8 +25,12 @@ export type CreateUserInput = {
   role?: UserRole;
 };
 
-type UserDocument = Omit<User, "role"> & {
+type UserDocument = Omit<User, "role" | "emailVerified" | "verificationToken" | "resetToken" | "resetTokenExpiry"> & {
   role?: UserRole;
+  emailVerified?: boolean;
+  verificationToken?: string | null;
+  resetToken?: string | null;
+  resetTokenExpiry?: Date | null;
 };
 
 let ensureUsersReadyPromise: Promise<void> | undefined;
@@ -50,6 +58,10 @@ function toUser(user: UserDocument): User {
     email: user.email,
     passwordHash: user.passwordHash,
     role: normalizeRole(user.role),
+    emailVerified: user.emailVerified ?? false,
+    verificationToken: user.verificationToken ?? null,
+    resetToken: user.resetToken ?? null,
+    resetTokenExpiry: user.resetTokenExpiry ?? null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -69,6 +81,11 @@ async function ensureUsersReady(): Promise<void> {
           ],
         },
         { $set: { role: "user" } }
+      );
+      // Backfill existing users as verified (they predate email verification)
+      await collection.updateMany(
+        { emailVerified: { $exists: false } },
+        { $set: { emailVerified: true, verificationToken: null } }
       );
     })();
   }
@@ -123,11 +140,16 @@ export async function createUser(input: CreateUserInput): Promise<User> {
   }
 
   const now = new Date();
+  const verificationToken = randomBytes(32).toString("hex");
   const user: User = {
     id: randomUUID(),
     email,
     passwordHash,
     role,
+    emailVerified: false,
+    verificationToken,
+    resetToken: null,
+    resetTokenExpiry: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -187,4 +209,95 @@ export async function deleteUser(userId: string): Promise<void> {
   await ensureUsersReady();
   const collection = await getUsersCollection();
   await collection.deleteOne({ id: userId.trim() });
+}
+
+export async function verifyEmail(token: string): Promise<boolean> {
+  if (!isNonEmptyString(token)) return false;
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const result = await collection.updateOne(
+    { verificationToken: token.trim() },
+    {
+      $set: {
+        emailVerified: true,
+        verificationToken: null,
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  return result.modifiedCount === 1;
+}
+
+export async function regenerateVerificationToken(
+  email: string
+): Promise<string | null> {
+  if (!isNonEmptyString(email)) return null;
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const token = randomBytes(32).toString("hex");
+  const result = await collection.updateOne(
+    { email: normalizeEmail(email), emailVerified: { $ne: true } },
+    {
+      $set: {
+        verificationToken: token,
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  return result.modifiedCount === 1 ? token : null;
+}
+
+export async function createPasswordResetToken(
+  email: string
+): Promise<string | null> {
+  if (!isNonEmptyString(email)) return null;
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const token = randomBytes(32).toString("hex");
+  const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  const result = await collection.updateOne(
+    { email: normalizeEmail(email) },
+    {
+      $set: {
+        resetToken: token,
+        resetTokenExpiry: expiry,
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  return result.modifiedCount === 1 ? token : null;
+}
+
+export async function resetPasswordWithToken(
+  token: string,
+  newPasswordHash: string
+): Promise<boolean> {
+  if (!isNonEmptyString(token) || !isNonEmptyString(newPasswordHash)) {
+    return false;
+  }
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const result = await collection.updateOne(
+    {
+      resetToken: token.trim(),
+      resetTokenExpiry: { $gt: new Date() },
+    },
+    {
+      $set: {
+        passwordHash: newPasswordHash.trim(),
+        resetToken: null,
+        resetTokenExpiry: null,
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  return result.modifiedCount === 1;
 }

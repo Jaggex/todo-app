@@ -1,21 +1,32 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useActionState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+
+import { resendVerificationAction, type ResendState } from "./actions";
+
+const resendInitial: ResendState = { ok: false };
 
 export function SignInForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [isPending, startTransition] = useTransition();
   const accountCreated = searchParams.get("created") === "1";
+
+  const [resendState, resendAction, isResending] = useActionState(
+    resendVerificationAction,
+    resendInitial
+  );
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setNeedsVerification(false);
 
     startTransition(async () => {
       const result = await signIn("credentials", {
@@ -25,7 +36,12 @@ export function SignInForm() {
       });
 
       if (!result || result.error) {
-        setError("Invalid email or password.");
+        if (result?.error === "EMAIL_NOT_VERIFIED") {
+          setNeedsVerification(true);
+          setError("Please verify your email before signing in.");
+        } else {
+          setError("Invalid email or password.");
+        }
         return;
       }
 
@@ -44,13 +60,39 @@ export function SignInForm() {
 
       {accountCreated ? (
         <div className="rounded-md bg-emerald-950 px-3 py-2 text-sm text-emerald-200">
-          Account created. Sign in with your new credentials.
+          Account created. Check your email for a verification link, then sign in.
         </div>
       ) : null}
 
       {error ? (
         <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-red-300">
           {error}
+        </div>
+      ) : null}
+
+      {needsVerification ? (
+        <div className="space-y-2">
+          {resendState.message ? (
+            <div
+              className={`rounded-md px-3 py-2 text-sm ${
+                resendState.ok
+                  ? "bg-emerald-950 text-emerald-200"
+                  : "bg-zinc-900 text-red-300"
+              }`}
+            >
+              {resendState.message}
+            </div>
+          ) : null}
+          <form action={resendAction}>
+            <input type="hidden" name="email" value={email} />
+            <button
+              type="submit"
+              className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-zinc-200 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+              disabled={isResending}
+            >
+              {isResending ? "Sending…" : "Resend verification email"}
+            </button>
+          </form>
         </div>
       ) : null}
 
@@ -87,8 +129,8 @@ export function SignInForm() {
         <Link className="hover:text-white" href="/signup">
           Create account
         </Link>
-        <Link className="hover:text-white" href="/">
-          Back
+        <Link className="hover:text-white" href="/forgot-password">
+          Forgot password?
         </Link>
       </div>
     </div>
