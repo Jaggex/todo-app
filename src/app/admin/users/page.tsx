@@ -20,6 +20,7 @@ export default async function AdminUsersPage() {
           <thead>
             <tr className="border-b border-dashed border-gray-200 text-xs uppercase tracking-wide text-zinc-400">
               <th className="px-4 py-3 font-medium">Email</th>
+              <th className="px-4 py-3 font-medium">Verified</th>
               <th className="px-4 py-3 font-medium">Joined</th>
               <th className="px-4 py-3 font-medium">Role &amp; actions</th>
             </tr>
@@ -28,6 +29,13 @@ export default async function AdminUsersPage() {
             {users.map((user) => (
               <tr key={user.id} className="border-b border-dashed border-gray-200 last:border-b-0">
                 <td className="px-4 py-3 text-zinc-100">{user.email}</td>
+                <td className="px-4 py-3 text-xs">
+                  {user.emailVerified ? (
+                    <span className="text-emerald-400">Yes</span>
+                  ) : (
+                    <span className="text-red-400">No</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-xs text-zinc-400">
                   {user.createdAt.toLocaleDateString("fi-FI")}
                 </td>
