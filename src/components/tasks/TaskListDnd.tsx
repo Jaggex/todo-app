@@ -33,6 +33,11 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
   const [optimisticTasks, setOptimisticTasks] = useState(tasks);
   const [isPending, startTransition] = useTransition();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setOptimisticTasks(tasks);
@@ -122,36 +127,60 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
 
   return (
     <div className={isPending ? "opacity-70" : undefined}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
-            {optimisticTasks.map((task, index) => (
-              <SortableTaskEntry key={task.id} taskId={task.id}>
-                <TaskEntry
-                  index={index}
-                  title={task.title}
-                  message={task.message}
-                  expanded={expandedIds.has(task.id)}
-                  onToggleExpanded={() => toggleExpanded(task.id)}
-                  rightSlot={
-                    <TaskEntryActions
-                      completed={task.completed}
-                      onCompletedChange={(completed) =>
-                        handleCompletedChange(task.id, completed)
-                      }
-                      onDelete={() => handleDelete(task.id)}
-                    />
+      {mounted ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {optimisticTasks.map((task, index) => (
+                <SortableTaskEntry key={task.id} taskId={task.id}>
+                  <TaskEntry
+                    index={index}
+                    title={task.title}
+                    message={task.message}
+                    expanded={expandedIds.has(task.id)}
+                    onToggleExpanded={() => toggleExpanded(task.id)}
+                    rightSlot={
+                      <TaskEntryActions
+                        completed={task.completed}
+                        onCompletedChange={(completed) =>
+                          handleCompletedChange(task.id, completed)
+                        }
+                        onDelete={() => handleDelete(task.id)}
+                      />
+                    }
+                  />
+                </SortableTaskEntry>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className="space-y-2">
+          {optimisticTasks.map((task, index) => (
+            <TaskEntry
+              key={task.id}
+              index={index}
+              title={task.title}
+              message={task.message}
+              expanded={expandedIds.has(task.id)}
+              onToggleExpanded={() => toggleExpanded(task.id)}
+              rightSlot={
+                <TaskEntryActions
+                  completed={task.completed}
+                  onCompletedChange={(completed) =>
+                    handleCompletedChange(task.id, completed)
                   }
+                  onDelete={() => handleDelete(task.id)}
                 />
-              </SortableTaskEntry>
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+              }
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
