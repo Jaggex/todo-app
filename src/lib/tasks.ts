@@ -48,6 +48,7 @@ async function ensureMongoTasksReady(): Promise<void> {
 
       await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ ownerId: 1, completed: 1, order: 1 });
+      await collection.createIndex({ title: "text", message: "text" });
     })();
   }
 
@@ -64,28 +65,48 @@ async function getNextOrder(ownerId: string, completed: boolean): Promise<number
   return typeof lastTask?.order === "number" ? lastTask.order + 1 : 0;
 }
 
-export async function getPendingTasks(ownerId: string) {
+export async function getPendingTasks(ownerId: string, search?: string) {
   if (!isNonEmptyString(ownerId)) return [];
   const normalizedOwnerId = normalizeOwnerId(ownerId);
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
+
+  const filter: Record<string, unknown> = {
+    ownerId: normalizedOwnerId,
+    completed: false,
+  };
+
+  if (search && search.trim()) {
+    filter.$text = { $search: search.trim() };
+  }
+
   const tasks = await collection
-    .find({ ownerId: normalizedOwnerId, completed: false })
+    .find(filter)
     .sort({ order: 1, id: 1 })
     .toArray();
 
   return tasks.map(toTask);
 }
 
-export async function getCompletedTasks(ownerId: string) {
+export async function getCompletedTasks(ownerId: string, search?: string) {
   if (!isNonEmptyString(ownerId)) return [];
   const normalizedOwnerId = normalizeOwnerId(ownerId);
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
+
+  const filter: Record<string, unknown> = {
+    ownerId: normalizedOwnerId,
+    completed: true,
+  };
+
+  if (search && search.trim()) {
+    filter.$text = { $search: search.trim() };
+  }
+
   const tasks = await collection
-    .find({ ownerId: normalizedOwnerId, completed: true })
+    .find(filter)
     .sort({ order: 1, id: 1 })
     .toArray();
 
