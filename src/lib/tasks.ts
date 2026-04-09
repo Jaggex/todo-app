@@ -78,7 +78,9 @@ export async function getPendingTasks(ownerId: string, search?: string) {
   };
 
   if (search && search.trim()) {
-    filter.$text = { $search: search.trim() };
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = { $regex: escaped, $options: "i" };
+    filter.$or = [{ title: regex }, { message: regex }];
   }
 
   const tasks = await collection
@@ -102,7 +104,9 @@ export async function getCompletedTasks(ownerId: string, search?: string) {
   };
 
   if (search && search.trim()) {
-    filter.$text = { $search: search.trim() };
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = { $regex: escaped, $options: "i" };
+    filter.$or = [{ title: regex }, { message: regex }];
   }
 
   const tasks = await collection
