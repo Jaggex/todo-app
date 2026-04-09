@@ -8,6 +8,7 @@ export type Task = {
   id: string;
   title: string;
   message?: string;
+  dueDate?: Date;
   completed: boolean;
   ownerId: string;
 };
@@ -36,6 +37,7 @@ function toTask(task: TaskDocument): Task {
     id: task.id,
     title: task.title,
     message: task.message,
+    dueDate: task.dueDate,
     completed: task.completed,
     ownerId: task.ownerId,
   };
@@ -117,7 +119,7 @@ export async function getCompletedTasks(ownerId: string, search?: string) {
   return tasks.map(toTask);
 }
 
-export async function addTask(ownerId: string, title: string, message?: string) {
+export async function addTask(ownerId: string, title: string, message?: string, dueDate?: Date) {
   if (!isNonEmptyString(ownerId)) {
     throw new Error("Owner is required");
   }
@@ -136,6 +138,7 @@ export async function addTask(ownerId: string, title: string, message?: string) 
     id: randomUUID(),
     title: trimmedTitle,
     message: trimmedMessage ? trimmedMessage : undefined,
+    dueDate: dueDate ?? undefined,
     completed: false,
     ownerId: normalizedOwnerId,
   };

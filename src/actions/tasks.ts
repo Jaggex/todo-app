@@ -44,13 +44,15 @@ export async function createTaskAction(
   const title = typeof rawTitle === "string" ? rawTitle : "";
   const rawMessage = formData.get("message");
   const message = typeof rawMessage === "string" ? rawMessage : "";
+  const rawDueDate = formData.get("dueDate");
+  const dueDate = typeof rawDueDate === "string" && rawDueDate ? new Date(rawDueDate) : undefined;
 
   if (!title.trim()) {
     return { ok: false, message: "Please enter a task title." };
   }
 
   try {
-    await addTask(ownerId, title, message);
+    await addTask(ownerId, title, message, dueDate);
   } catch {
     return { ok: false, message: "Could not save task." };
   }
@@ -68,12 +70,14 @@ export async function createTask(formData: FormData): Promise<void> {
   const title = typeof rawTitle === "string" ? rawTitle : "";
   const rawMessage = formData.get("message");
   const message = typeof rawMessage === "string" ? rawMessage : "";
+  const rawDueDate = formData.get("dueDate");
+  const dueDate = typeof rawDueDate === "string" && rawDueDate ? new Date(rawDueDate) : undefined;
 
   if (!title.trim()) {
     redirect("/?new=1");
   }
 
-  await addTask(ownerId, title, message);
+  await addTask(ownerId, title, message, dueDate);
   revalidatePath("/");
   revalidatePath("/completed");
   redirect("/");

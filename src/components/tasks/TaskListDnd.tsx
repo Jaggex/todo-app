@@ -141,6 +141,8 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
                     index={index}
                     title={task.title}
                     message={task.message}
+                    dueDate={task.dueDate}
+                    completed={task.completed}
                     expanded={expandedIds.has(task.id)}
                     onToggleExpanded={() => toggleExpanded(task.id)}
                     rightSlot={
@@ -166,6 +168,8 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
               index={index}
               title={task.title}
               message={task.message}
+              dueDate={task.dueDate}
+              completed={task.completed}
               expanded={expandedIds.has(task.id)}
               onToggleExpanded={() => toggleExpanded(task.id)}
               rightSlot={

@@ -109,5 +109,3 @@
     - Easiest path for a Next.js SSR app: Azure App Service (Linux)
     - Add: Application Insights for logs/metrics, Key Vault for secrets, and Budgets/alerts for cost safety.
 
-7.
-

@@ -16,7 +16,12 @@ export function TaskForm() {
         rows={3}
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <input
+          type="date"
+          name="dueDate"
+          className="rounded-md bg-zinc-800 px-3 py-2 text-sm text-zinc-400 [color-scheme:dark]"
+        />
         <button
           type="submit"
           className="rounded-md bg-zinc-800 px-3 py-2 text-sm text-gray-300 hover:bg-neutral-100 hover:text-black"
