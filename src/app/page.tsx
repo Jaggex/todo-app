@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 
 import { TaskWindow } from "@/components/tasks/TaskWindow";
-import { TaskForm } from "@/components/tasks/TaskForm";
+import { TaskCreateWindow } from "@/components/tasks/TaskCreateWindow";
 import { TaskListDnd } from "@/components/tasks/TaskListDnd";
 import { TaskSearch } from "@/components/tasks/TaskSearch";
 import { TagFilter } from "@/components/tasks/TagFilter";
@@ -36,20 +36,23 @@ export default async function Home({
   const tags = await getTagsByOwner(ownerId);
 
   return (
-    <div className="space-y-3">
-      {isNewOpen ? <TaskForm tags={tags} /> : null}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-start justify-between">
+        <Link
+          className="rounded-md px-3 py-2 text-sm text-gray-300 bg-zinc-800 hover:bg-neutral-100 hover:text-black"
+          href={isNewOpen ? "/" : "/?new=1"}
+        >
+          {isNewOpen ? "Close" : "New task"}
+        </Link>
+      </div>
 
-      <TaskWindow
-        title="Pending Tasks"
-        rightSlot={
-          <Link
-            className="rounded-md px-3 py-3 text-sm text-gray-300 bg-zinc-900 hover:bg-neutral-100 hover:text-black"
-            href={isNewOpen ? "/" : "/?new=1"}
-          >
-            {isNewOpen ? "Close" : "New task"}
-          </Link>
-        }
-      >
+      {isNewOpen ? (
+        <div className="mb-5">
+          <TaskCreateWindow tags={tags} />
+        </div>
+      ) : null}
+
+      <TaskWindow title="Pending Tasks">
         <div className="space-y-3">
           <TaskSearch basePath="/" />
           <TagFilter tags={tags} basePath="/" />

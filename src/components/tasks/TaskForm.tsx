@@ -41,13 +41,13 @@ export function TaskForm({ tags }: TaskFormProps) {
     <div className="space-y-2">
       <form action={createTask} className="space-y-2">
         <input
-          className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
+          className="w-full rounded-md bg-zinc-700 px-3 py-2 text-sm text-white"
           name="title"
           placeholder="Title"
         />
 
         <textarea
-          className="w-full resize-none rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
+          className="w-full resize-none rounded-md bg-zinc-700 px-3 py-2 text-sm text-white"
           name="message"
           placeholder="Message (optional)"
           rows={3}
@@ -95,19 +95,19 @@ export function TaskForm({ tags }: TaskFormProps) {
             <input
               type="date"
               name="dueDate"
-              className="rounded-md bg-zinc-800 px-3 py-2 text-sm text-zinc-400 [color-scheme:dark]"
+              className="h-9 rounded-md bg-zinc-700 px-3 text-sm text-zinc-400 [color-scheme:dark]"
             />
             <button
               type="button"
               onClick={() => setShowNewTag((v) => !v)}
-              className="rounded-md bg-zinc-800 px-2.5 py-2 text-xs text-zinc-400 hover:text-white"
+              className="h-9 rounded-md bg-zinc-700 px-2.5 text-sm text-zinc-400 hover:text-white"
             >
               + Tag
             </button>
           </div>
           <button
             type="submit"
-            className="rounded-md bg-zinc-800 px-3 py-2 text-sm text-gray-300 hover:bg-neutral-100 hover:text-black"
+            className="h-9 rounded-md bg-zinc-700 px-3 text-sm text-gray-300 hover:bg-neutral-100 hover:text-black"
           >
             Add task
           </button>
