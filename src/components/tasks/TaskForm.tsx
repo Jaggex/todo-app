@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useRef, useState, useActionState } from "react";
 
 import type { Tag } from "@/lib/tags";
 import { createTask } from "@/actions/tasks";
@@ -17,6 +17,7 @@ export function TaskForm({ tags }: TaskFormProps) {
     () => new Set()
   );
   const [showNewTag, setShowNewTag] = useState(false);
+  const tagInputRef = useRef<HTMLInputElement>(null);
   const [tagState, tagFormAction, isTagPending] = useActionState(
     createTagAction,
     tagInitial
@@ -104,6 +105,48 @@ export function TaskForm({ tags }: TaskFormProps) {
             >
               + Tag
             </button>
+            {showNewTag ? (
+              <div className="contents">
+                <input
+                  ref={tagInputRef}
+                  type="text"
+                  placeholder="New tag name"
+                  className="h-9 w-[15rem] rounded-md bg-zinc-800 px-3 text-xs text-white"
+                  autoFocus
+                  disabled={isTagPending}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const fd = new FormData();
+                      fd.set("name", tagInputRef.current?.value ?? "");
+                      tagFormAction(fd);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="h-9 rounded-md bg-zinc-800 px-2.5 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+                  disabled={isTagPending}
+                  onClick={() => {
+                    const fd = new FormData();
+                    fd.set("name", tagInputRef.current?.value ?? "");
+                    tagFormAction(fd);
+                  }}
+                >
+                  {isTagPending ? "…" : "Create"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewTag(false)}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  Cancel
+                </button>
+                {tagState.message && !tagState.ok ? (
+                  <span className="text-xs text-red-400">{tagState.message}</span>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <button
             type="submit"
@@ -113,36 +156,6 @@ export function TaskForm({ tags }: TaskFormProps) {
           </button>
         </div>
       </form>
-
-      {showNewTag ? (
-        <form action={tagFormAction} className="flex items-center gap-2">
-          <input
-            name="name"
-            type="text"
-            placeholder="New tag name"
-            className="flex-1 rounded-md bg-zinc-800 px-3 py-1.5 text-xs text-white"
-            autoFocus
-            disabled={isTagPending}
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
-            disabled={isTagPending}
-          >
-            {isTagPending ? "…" : "Create"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowNewTag(false)}
-            className="text-xs text-zinc-500 hover:text-white"
-          >
-            Cancel
-          </button>
-          {tagState.message && !tagState.ok ? (
-            <span className="text-xs text-red-400">{tagState.message}</span>
-          ) : null}
-        </form>
-      ) : null}
     </div>
   );
 }
