@@ -9,6 +9,7 @@ export type Task = {
   title: string;
   message?: string;
   dueDate?: Date;
+  tags: string[];
   completed: boolean;
   ownerId: string;
 };
@@ -38,6 +39,7 @@ function toTask(task: TaskDocument): Task {
     title: task.title,
     message: task.message,
     dueDate: task.dueDate,
+    tags: task.tags ?? [],
     completed: task.completed,
     ownerId: task.ownerId,
   };
@@ -67,7 +69,7 @@ async function getNextOrder(ownerId: string, completed: boolean): Promise<number
   return typeof lastTask?.order === "number" ? lastTask.order + 1 : 0;
 }
 
-export async function getPendingTasks(ownerId: string, search?: string) {
+export async function getPendingTasks(ownerId: string, search?: string, tags?: string[]) {
   if (!isNonEmptyString(ownerId)) return [];
   const normalizedOwnerId = normalizeOwnerId(ownerId);
 
@@ -79,10 +81,14 @@ export async function getPendingTasks(ownerId: string, search?: string) {
     completed: false,
   };
 
+  if (tags && tags.length > 0) {
+    filter.tags = { $all: tags };
+  }
+
   if (search && search.trim()) {
     const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = { $regex: escaped, $options: "i" };
-    filter.$or = [{ title: regex }, { message: regex }];
+    filter.$or = [{ title: regex }, { message: regex }, { tags: regex }];
   }
 
   const tasks = await collection
@@ -93,7 +99,7 @@ export async function getPendingTasks(ownerId: string, search?: string) {
   return tasks.map(toTask);
 }
 
-export async function getCompletedTasks(ownerId: string, search?: string) {
+export async function getCompletedTasks(ownerId: string, search?: string, tags?: string[]) {
   if (!isNonEmptyString(ownerId)) return [];
   const normalizedOwnerId = normalizeOwnerId(ownerId);
 
@@ -105,10 +111,14 @@ export async function getCompletedTasks(ownerId: string, search?: string) {
     completed: true,
   };
 
+  if (tags && tags.length > 0) {
+    filter.tags = { $all: tags };
+  }
+
   if (search && search.trim()) {
     const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = { $regex: escaped, $options: "i" };
-    filter.$or = [{ title: regex }, { message: regex }];
+    filter.$or = [{ title: regex }, { message: regex }, { tags: regex }];
   }
 
   const tasks = await collection
@@ -119,7 +129,7 @@ export async function getCompletedTasks(ownerId: string, search?: string) {
   return tasks.map(toTask);
 }
 
-export async function addTask(ownerId: string, title: string, message?: string, dueDate?: Date) {
+export async function addTask(ownerId: string, title: string, message?: string, dueDate?: Date, tags?: string[]) {
   if (!isNonEmptyString(ownerId)) {
     throw new Error("Owner is required");
   }
@@ -139,6 +149,7 @@ export async function addTask(ownerId: string, title: string, message?: string, 
     title: trimmedTitle,
     message: trimmedMessage ? trimmedMessage : undefined,
     dueDate: dueDate ?? undefined,
+    tags: tags ?? [],
     completed: false,
     ownerId: normalizedOwnerId,
   };

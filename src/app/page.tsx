@@ -6,7 +6,9 @@ import { TaskWindow } from "@/components/tasks/TaskWindow";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { TaskListDnd } from "@/components/tasks/TaskListDnd";
 import { TaskSearch } from "@/components/tasks/TaskSearch";
+import { TagFilter } from "@/components/tasks/TagFilter";
 import { getPendingTasks } from "@/lib/tasks";
+import { getTagsByOwner } from "@/lib/tags";
 import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +30,14 @@ export default async function Home({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const isNewOpen = resolvedSearchParams?.new === "1";
   const searchQuery = typeof resolvedSearchParams?.q === "string" ? resolvedSearchParams.q : undefined;
-  const tasks = await getPendingTasks(ownerId, searchQuery);
+  const tagsParam = typeof resolvedSearchParams?.tags === "string" ? resolvedSearchParams.tags : undefined;
+  const tagFilters = tagsParam ? tagsParam.split(",").filter(Boolean) : undefined;
+  const tasks = await getPendingTasks(ownerId, searchQuery, tagFilters);
+  const tags = await getTagsByOwner(ownerId);
 
   return (
     <div className="space-y-3">
-      {isNewOpen ? <TaskForm /> : null}
+      {isNewOpen ? <TaskForm tags={tags} /> : null}
 
       <TaskWindow
         title="Pending Tasks"
@@ -47,6 +52,7 @@ export default async function Home({
       >
         <div className="space-y-3">
           <TaskSearch basePath="/" />
+          <TagFilter tags={tags} basePath="/" />
           {tasks.length === 0 ? (
             <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
               {searchQuery ? "No tasks match your search." : "No pending tasks."}

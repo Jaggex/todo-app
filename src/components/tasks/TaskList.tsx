@@ -77,6 +77,7 @@ export function TaskList({ tasks }: TaskListProps) {
             title={task.title}
             message={task.message}
             dueDate={task.dueDate}
+            tags={task.tags}
             completed={task.completed}
             expanded={expandedIds.has(task.id)}
             onToggleExpanded={() => toggleExpanded(task.id)}

@@ -5,6 +5,7 @@ type TaskEntryProps = {
   title: string;
   message?: string;
   dueDate?: Date;
+  tags?: string[];
   completed?: boolean;
   expanded?: boolean;
   onToggleExpanded?: () => void;
@@ -35,6 +36,7 @@ export function TaskEntry({
   title,
   message,
   dueDate,
+  tags,
   completed = false,
   expanded = false,
   onToggleExpanded,
@@ -71,6 +73,18 @@ export function TaskEntry({
             </span>
           ) : null}
         </div>
+        {tags && tags.length > 0 ? (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-zinc-600 px-2 py-0.5 text-[10px] text-zinc-300"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {expanded && message ? (
           <div className="text-xs text-zinc-100 mt-3 whitespace-pre-wrap">
             {message}
