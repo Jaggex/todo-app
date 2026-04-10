@@ -1,6 +1,6 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
-import type { Collection } from "mongodb";
+import { ObjectId, type Collection, type WithId } from "mongodb";
 
 import { getDb } from "@/lib/mongodb";
 
@@ -25,7 +25,7 @@ export type CreateUserInput = {
   role?: UserRole;
 };
 
-type UserDocument = Omit<User, "role" | "emailVerified" | "verificationToken" | "resetToken" | "resetTokenExpiry"> & {
+type UserDocument = Omit<User, "id" | "role" | "emailVerified" | "verificationToken" | "resetToken" | "resetTokenExpiry"> & {
   role?: UserRole;
   emailVerified?: boolean;
   verificationToken?: string | null;
@@ -52,9 +52,9 @@ function normalizeRole(role: UserDocument["role"]): UserRole {
   return role === "admin" ? "admin" : "user";
 }
 
-function toUser(user: UserDocument): User {
+function toUser(user: WithId<UserDocument>): User {
   return {
-    id: user.id,
+    id: user._id.toHexString(),
     email: user.email,
     passwordHash: user.passwordHash,
     role: normalizeRole(user.role),
@@ -71,8 +71,8 @@ async function ensureUsersReady(): Promise<void> {
   if (!ensureUsersReadyPromise) {
     ensureUsersReadyPromise = (async () => {
       const collection = await getUsersCollection();
-      await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ email: 1 }, { unique: true });
+
       await collection.updateMany(
         {
           $or: [
@@ -105,9 +105,16 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 export async function findUserById(id: string): Promise<User | null> {
   if (!isNonEmptyString(id)) return null;
 
+  let objectId: ObjectId;
+  try {
+    objectId = new ObjectId(id.trim());
+  } catch {
+    return null;
+  }
+
   await ensureUsersReady();
   const collection = await getUsersCollection();
-  const user = await collection.findOne({ id: id.trim() });
+  const user = await collection.findOne({ _id: objectId });
   return user ? toUser(user) : null;
 }
 
@@ -141,8 +148,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
 
   const now = new Date();
   const verificationToken = randomBytes(32).toString("hex");
-  const user: User = {
-    id: randomUUID(),
+  const doc = {
     email,
     passwordHash,
     role,
@@ -154,8 +160,11 @@ export async function createUser(input: CreateUserInput): Promise<User> {
     updatedAt: now,
   };
 
-  await collection.insertOne(user);
-  return user;
+  const result = await collection.insertOne(doc);
+  return {
+    id: result.insertedId.toHexString(),
+    ...doc,
+  };
 }
 
 export async function updateUserRole(userId: string, role: UserRole): Promise<void> {
@@ -166,7 +175,7 @@ export async function updateUserRole(userId: string, role: UserRole): Promise<vo
   await ensureUsersReady();
   const collection = await getUsersCollection();
   await collection.updateOne(
-    { id: userId.trim() },
+    { _id: new ObjectId(userId.trim()) },
     {
       $set: {
         role,
@@ -191,7 +200,7 @@ export async function updateUserPasswordHash(
   await ensureUsersReady();
   const collection = await getUsersCollection();
   await collection.updateOne(
-    { id: userId.trim() },
+    { _id: new ObjectId(userId.trim()) },
     {
       $set: {
         passwordHash: passwordHash.trim(),
@@ -208,7 +217,7 @@ export async function deleteUser(userId: string): Promise<void> {
 
   await ensureUsersReady();
   const collection = await getUsersCollection();
-  await collection.deleteOne({ id: userId.trim() });
+  await collection.deleteOne({ _id: new ObjectId(userId.trim()) });
 }
 
 export async function verifyEmail(token: string): Promise<boolean> {
