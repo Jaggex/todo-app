@@ -60,97 +60,96 @@ export function TaskForm({ tags }: TaskFormProps) {
           value={Array.from(selectedTagNames).join(",")}
         />
 
-        {tags.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {tags.map((tag) => {
-              const selected = selectedTagNames.has(tag.name);
-              return (
-                <span key={tag.id} className="group flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => toggleTag(tag.name)}
-                    className={`rounded-full px-2.5 py-0.5 text-xs transition-colors ${
-                      selected
-                        ? "bg-zinc-200 text-zinc-900"
-                        : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-                    }`}
-                  >
-                    {tag.name}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteTag(tag.id, tag.name)}
-                    className="hidden group-hover:inline-block text-xs text-zinc-500 hover:text-red-400"
-                    title={`Delete "${tag.name}" tag`}
-                  >
-                    ✕
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-        ) : null}
-
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              name="dueDate"
-              className="h-9 rounded-md bg-zinc-700 px-3 text-sm text-zinc-400 [color-scheme:dark]"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewTag((v) => !v)}
-              className="h-9 rounded-md bg-zinc-700 px-2.5 text-sm text-zinc-400 hover:text-white"
-            >
-              + Tag
-            </button>
-            {showNewTag ? (
-              <div className="contents">
-                <input
-                  ref={tagInputRef}
-                  type="text"
-                  placeholder="New tag name"
-                  className="h-9 w-[15rem] rounded-md bg-zinc-700 px-3 text-xs text-white"
-                  autoFocus
-                  disabled={isTagPending}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      const fd = new FormData();
-                      fd.set("name", tagInputRef.current?.value ?? "");
-                      tagFormAction(fd);
-                    }
-                  }}
-                />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setShowNewTag((v) => !v)}
+            className="rounded-md bg-zinc-700 px-2.5 py-2 text-xs text-zinc-400 hover:text-white"
+          >
+            + Tag
+          </button>
+          {tags.map((tag) => {
+            const selected = selectedTagNames.has(tag.name);
+            return (
+              <span key={tag.id} className="group flex items-center gap-0.5">
                 <button
                   type="button"
-                  className="h-9 rounded-md bg-zinc-600 px-2.5 text-xs text-zinc-100 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
-                  disabled={isTagPending}
-                  onClick={() => {
+                  onClick={() => toggleTag(tag.name)}
+                  className={`rounded-full px-2.5 py-0.5 text-xs transition-colors ${
+                    selected
+                      ? "bg-zinc-200 text-zinc-900"
+                      : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                  }`}
+                >
+                  {tag.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTag(tag.id, tag.name)}
+                  className="hidden group-hover:inline-block text-xs text-zinc-500 hover:text-red-400"
+                  title={`Delete "${tag.name}" tag`}
+                >
+                  ✕
+                </button>
+              </span>
+            );
+          })}
+          {showNewTag ? (
+            <div className="mt-1 flex items-center gap-1.5 basis-full">
+              <input
+                ref={tagInputRef}
+                type="text"
+                placeholder="New tag name"
+                className="w-[10rem] rounded-md bg-zinc-700 px-3 py-2 text-xs text-white"
+                autoFocus
+                disabled={isTagPending}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
                     const fd = new FormData();
                     fd.set("name", tagInputRef.current?.value ?? "");
                     tagFormAction(fd);
-                  }}
-                >
-                  {isTagPending ? "…" : "Create"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowNewTag(false)}
-                  className="text-xs text-zinc-300 hover:text-red-700"
-                >
-                  Cancel
-                </button>
-                {tagState.message && !tagState.ok ? (
-                  <span className="text-xs text-red-400">{tagState.message}</span>
-                ) : null}
-              </div>
-            ) : null}
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="rounded-md bg-zinc-600 px-2.5 py-2 text-xs text-zinc-100 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+                disabled={isTagPending}
+                onClick={() => {
+                  const fd = new FormData();
+                  fd.set("name", tagInputRef.current?.value ?? "");
+                  tagFormAction(fd);
+                }}
+              >
+                {isTagPending ? "…" : "Create"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewTag(false)}
+                className="text-xs text-zinc-300 hover:text-red-700"
+              >
+                Cancel
+              </button>
+              {tagState.message && !tagState.ok ? (
+                <span className="text-xs text-red-400">{tagState.message}</span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 mt-1">
+            <span className="pl-1 text-sm text-zinc-300">Due date</span>
+            <input
+              type="date"
+              name="dueDate"
+              className="h-8 rounded-md bg-zinc-700 px-3 text-sm text-zinc-400 [color-scheme:dark]"
+            />
           </div>
           <button
             type="submit"
-            className="h-9 rounded-md bg-zinc-700 px-3 text-sm text-gray-300 hover:bg-neutral-100 hover:text-black"
+            className="h-8 rounded-md bg-zinc-700 px-3 text-sm text-gray-300 hover:bg-neutral-100 hover:text-black"
           >
             Add task
           </button>
