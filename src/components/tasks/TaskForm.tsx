@@ -111,7 +111,7 @@ export function TaskForm({ tags }: TaskFormProps) {
                   ref={tagInputRef}
                   type="text"
                   placeholder="New tag name"
-                  className="h-9 w-[15rem] rounded-md bg-zinc-800 px-3 text-xs text-white"
+                  className="h-9 w-[15rem] rounded-md bg-zinc-700 px-3 text-xs text-white"
                   autoFocus
                   disabled={isTagPending}
                   onKeyDown={(e) => {
@@ -125,7 +125,7 @@ export function TaskForm({ tags }: TaskFormProps) {
                 />
                 <button
                   type="button"
-                  className="h-9 rounded-md bg-zinc-800 px-2.5 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+                  className="h-9 rounded-md bg-zinc-600 px-2.5 text-xs text-zinc-100 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
                   disabled={isTagPending}
                   onClick={() => {
                     const fd = new FormData();
@@ -138,7 +138,7 @@ export function TaskForm({ tags }: TaskFormProps) {
                 <button
                   type="button"
                   onClick={() => setShowNewTag(false)}
-                  className="text-xs text-zinc-500 hover:text-white"
+                  className="text-xs text-zinc-300 hover:text-red-700"
                 >
                   Cancel
                 </button>
