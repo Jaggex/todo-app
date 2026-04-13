@@ -4,12 +4,14 @@ type TaskEntryActionsProps = {
   completed: boolean;
   onCompletedChange: (completed: boolean) => void;
   onDelete: () => void;
+  onEdit?: () => void;
 };
 
 export function TaskEntryActions({
   completed,
   onCompletedChange,
   onDelete,
+  onEdit,
 }: TaskEntryActionsProps) {
   function handleDelete() {
     const ok = window.confirm("Delete this task?");
@@ -32,6 +34,17 @@ export function TaskEntryActions({
         />
         Complete
       </label>
+
+      {onEdit ? (
+        <button
+          type="button"
+          onClick={onEdit}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="rounded-md bg-zinc-900 px-2 py-1 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black"
+        >
+          Edit
+        </button>
+      ) : null}
 
       <button
         type="button"

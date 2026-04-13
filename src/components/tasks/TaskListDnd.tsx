@@ -20,19 +20,23 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
+import type { Tag } from "@/lib/tags";
 import type { Task } from "@/lib/tasks";
 import { TaskEntry } from "@/components/tasks/TaskEntry";
 import { TaskEntryActions } from "@/components/tasks/TaskEntryActions";
+import { TaskEditForm } from "@/components/tasks/TaskEditForm";
 import { deleteTask, reorderPendingTasks, setTaskCompleted } from "@/actions/tasks";
 
 type TaskListDndProps = {
   tasks: Task[];
+  allTags: Tag[];
 };
 
-export function TaskListDnd({ tasks }: TaskListDndProps) {
+export function TaskListDnd({ tasks, allTags }: TaskListDndProps) {
   const [optimisticTasks, setOptimisticTasks] = useState(tasks);
   const [isPending, startTransition] = useTransition();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -111,6 +115,10 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
     });
   }
 
+  function handleEdit(taskId: string) {
+    setEditingTaskId(taskId);
+  }
+
   function handleDelete(taskId: string) {
     const previous = optimisticTasks;
     setOptimisticTasks((current) => current.filter((t) => t.id !== taskId));
@@ -136,26 +144,45 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {optimisticTasks.map((task, index) => (
-                <SortableTaskEntry key={task.id} taskId={task.id}>
-                  <TaskEntry
-                    index={index}
-                    title={task.title}
-                    message={task.message}
-                    dueDate={task.dueDate}
-                    tags={task.tags}
-                    completed={task.completed}
-                    expanded={expandedIds.has(task.id)}
-                    onToggleExpanded={() => toggleExpanded(task.id)}
-                    rightSlot={
-                      <TaskEntryActions
-                        completed={task.completed}
-                        onCompletedChange={(completed) =>
-                          handleCompletedChange(task.id, completed)
-                        }
-                        onDelete={() => handleDelete(task.id)}
+                <SortableTaskEntry key={task.id} taskId={task.id} isEditing={editingTaskId === task.id}>
+                  {editingTaskId === task.id ? (
+                    <div
+                      className={`rounded-xl p-4 ${index % 2 === 0 ? "bg-zinc-700" : "bg-zinc-800"}`}
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      <TaskEditForm
+                        taskId={task.id}
+                        initialTitle={task.title}
+                        initialMessage={task.message}
+                        initialDueDate={task.dueDate}
+                        initialTags={task.tags}
+                        allTags={allTags}
+                        bgVariant={index % 2 === 0 ? "zinc-700" : "zinc-800"}
+                        onCancel={() => setEditingTaskId(null)}
                       />
-                    }
-                  />
+                    </div>
+                  ) : (
+                    <TaskEntry
+                      index={index}
+                      title={task.title}
+                      message={task.message}
+                      dueDate={task.dueDate}
+                      tags={task.tags}
+                      completed={task.completed}
+                      expanded={expandedIds.has(task.id)}
+                      onToggleExpanded={() => toggleExpanded(task.id)}
+                      rightSlot={
+                        <TaskEntryActions
+                          completed={task.completed}
+                          onCompletedChange={(completed) =>
+                            handleCompletedChange(task.id, completed)
+                          }
+                          onDelete={() => handleDelete(task.id)}
+                          onEdit={() => handleEdit(task.id)}
+                        />
+                      }
+                    />
+                  )}
                 </SortableTaskEntry>
               ))}
             </div>
@@ -164,26 +191,45 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
       ) : (
         <div className="space-y-2">
           {optimisticTasks.map((task, index) => (
-            <TaskEntry
-              key={task.id}
-              index={index}
-              title={task.title}
-              message={task.message}
-              dueDate={task.dueDate}
-              tags={task.tags}
-              completed={task.completed}
-              expanded={expandedIds.has(task.id)}
-              onToggleExpanded={() => toggleExpanded(task.id)}
-              rightSlot={
-                <TaskEntryActions
-                  completed={task.completed}
-                  onCompletedChange={(completed) =>
-                    handleCompletedChange(task.id, completed)
-                  }
-                  onDelete={() => handleDelete(task.id)}
+            editingTaskId === task.id ? (
+              <div
+                key={task.id}
+                className={`rounded-xl p-4 ${index % 2 === 0 ? "bg-zinc-700" : "bg-zinc-800"}`}
+              >
+                <TaskEditForm
+                  taskId={task.id}
+                  initialTitle={task.title}
+                  initialMessage={task.message}
+                  initialDueDate={task.dueDate}
+                  initialTags={task.tags}
+                  allTags={allTags}
+                  bgVariant={index % 2 === 0 ? "zinc-700" : "zinc-800"}
+                  onCancel={() => setEditingTaskId(null)}
                 />
-              }
-            />
+              </div>
+            ) : (
+              <TaskEntry
+                key={task.id}
+                index={index}
+                title={task.title}
+                message={task.message}
+                dueDate={task.dueDate}
+                tags={task.tags}
+                completed={task.completed}
+                expanded={expandedIds.has(task.id)}
+                onToggleExpanded={() => toggleExpanded(task.id)}
+                rightSlot={
+                  <TaskEntryActions
+                    completed={task.completed}
+                    onCompletedChange={(completed) =>
+                      handleCompletedChange(task.id, completed)
+                    }
+                    onDelete={() => handleDelete(task.id)}
+                    onEdit={() => handleEdit(task.id)}
+                  />
+                }
+              />
+            )
           ))}
         </div>
       )}
@@ -193,9 +239,11 @@ export function TaskListDnd({ tasks }: TaskListDndProps) {
 
 function SortableTaskEntry({
   taskId,
+  isEditing,
   children,
 }: {
   taskId: string;
+  isEditing: boolean;
   children: ReactNode;
 }) {
   const {
@@ -218,11 +266,11 @@ function SortableTaskEntry({
     <div
       ref={setNodeRef}
       style={style}
-      className={`cursor-grab active:cursor-grabbing ${
+      className={isEditing ? "" : `cursor-default active:cursor-grabbing ${
         isDragging ? "opacity-60" : ""
       }`}
       {...attributes}
-      {...listeners}
+      {...(isEditing ? {} : listeners)}
     >
       {children}
     </div>

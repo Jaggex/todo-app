@@ -11,6 +11,7 @@ import {
   deleteTaskById,
   reorderPendingTasksById,
   setTaskCompletedById,
+  updateTaskById,
 } from "@/lib/tasks";
 
 async function requireSession() {
@@ -120,6 +121,28 @@ export async function deleteTask(taskId: string) {
   const id = taskIdSchema.parse(taskId);
 
   await deleteTaskById(ownerId, id);
+  revalidatePath("/");
+  revalidatePath("/completed");
+}
+
+export async function updateTask(
+  taskId: string,
+  title: string,
+  message: string,
+  dueDate: string,
+  tags: string[]
+): Promise<void> {
+  const session = await requireSession();
+  const ownerId = requireOwnerId(session);
+  const id = taskIdSchema.parse(taskId);
+
+  await updateTaskById(ownerId, id, {
+    title,
+    message: message || undefined,
+    dueDate: dueDate ? new Date(dueDate) : undefined,
+    tags,
+  });
+
   revalidatePath("/");
   revalidatePath("/completed");
 }

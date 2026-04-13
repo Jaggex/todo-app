@@ -61,7 +61,7 @@ export default async function Home({
               {searchQuery ? "No tasks match your search." : "No pending tasks."}
             </div>
           ) : (
-            <TaskListDnd tasks={tasks} />
+            <TaskListDnd tasks={tasks} allTags={tags} />
           )}
         </div>
       </TaskWindow>

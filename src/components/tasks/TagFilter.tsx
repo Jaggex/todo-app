@@ -40,7 +40,7 @@ export function TagFilter({ tags, basePath }: TagFilterProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-zinc-500">Filter:</span>
+      <span className="text-xs text-zinc-200">Filter:</span>
       {tags.map((tag) => (
         <button
           key={tag.id}

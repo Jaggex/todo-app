@@ -229,6 +229,32 @@ export async function setTaskCompletedById(
   );
 }
 
+export async function updateTaskById(
+  ownerId: string,
+  taskId: string,
+  update: { title: string; message?: string; dueDate?: Date; tags: string[] }
+) {
+  if (!isNonEmptyString(ownerId)) return;
+  const normalizedOwnerId = normalizeOwnerId(ownerId);
+
+  const trimmedTitle = update.title.trim();
+  if (!trimmedTitle) throw new Error("Title is required");
+
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  await collection.updateOne(
+    { _id: new ObjectId(taskId), ownerId: normalizedOwnerId },
+    {
+      $set: {
+        title: trimmedTitle,
+        message: update.message?.trim() || undefined,
+        dueDate: update.dueDate ?? undefined,
+        tags: update.tags,
+      },
+    }
+  );
+}
+
 export async function deleteTaskById(ownerId: string, taskId: string) {
   if (!isNonEmptyString(ownerId)) return;
   const normalizedOwnerId = normalizeOwnerId(ownerId);
