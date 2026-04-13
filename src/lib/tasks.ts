@@ -1,6 +1,4 @@
-import { randomUUID } from "node:crypto";
-
-import type { Collection } from "mongodb";
+import { ObjectId, type Collection, type WithId } from "mongodb";
 
 import { getDb } from "@/lib/mongodb";
 
@@ -14,7 +12,7 @@ export type Task = {
   ownerId: string;
 };
 
-type TaskDocument = Task & {
+type TaskDocument = Omit<Task, "id"> & {
   order: number;
 };
 
@@ -33,9 +31,9 @@ function normalizeOwnerId(ownerId: string): string {
   return ownerId.trim();
 }
 
-function toTask(task: TaskDocument): Task {
+function toTask(task: WithId<TaskDocument>): Task {
   return {
-    id: task.id,
+    id: task._id.toHexString(),
     title: task.title,
     message: task.message,
     dueDate: task.dueDate,
@@ -50,8 +48,14 @@ async function ensureMongoTasksReady(): Promise<void> {
     ensureMongoTasksReadyPromise = (async () => {
       const collection = await getTasksCollection();
 
-      await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ ownerId: 1, completed: 1, order: 1 });
+
+      // Drop the legacy `id` unique index if it exists
+      try {
+        await collection.dropIndex("id_1");
+      } catch {
+        // index may not exist
+      }
       await collection.createIndex({ title: "text", message: "text" });
     })();
   }
@@ -93,7 +97,7 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
 
   const tasks = await collection
     .find(filter)
-    .sort({ order: 1, id: 1 })
+    .sort({ order: 1, _id: 1 })
     .toArray();
 
   return tasks.map(toTask);
@@ -123,7 +127,7 @@ export async function getCompletedTasks(ownerId: string, search?: string, tags?:
 
   const tasks = await collection
     .find(filter)
-    .sort({ order: 1, id: 1 })
+    .sort({ order: 1, _id: 1 })
     .toArray();
 
   return tasks.map(toTask);
@@ -144,21 +148,26 @@ export async function addTask(ownerId: string, title: string, message?: string, 
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
-  const newTask: Task = {
-    id: randomUUID(),
+  const doc = {
     title: trimmedTitle,
     message: trimmedMessage ? trimmedMessage : undefined,
     dueDate: dueDate ?? undefined,
     tags: tags ?? [],
     completed: false,
     ownerId: normalizedOwnerId,
+    order: await getNextOrder(normalizedOwnerId, false),
   };
 
-  await collection.insertOne({
-    ...newTask,
-    order: await getNextOrder(normalizedOwnerId, false),
-  });
-  return newTask;
+  const result = await collection.insertOne(doc);
+  return {
+    id: result.insertedId.toHexString(),
+    title: doc.title,
+    message: doc.message,
+    dueDate: doc.dueDate,
+    tags: doc.tags,
+    completed: doc.completed,
+    ownerId: doc.ownerId,
+  };
 }
 
 export async function reorderPendingTasksById(
@@ -173,10 +182,10 @@ export async function reorderPendingTasksById(
 
   const ownedPending = await collection
     .find({ ownerId: normalizedOwnerId, completed: false })
-    .sort({ order: 1, id: 1 })
+    .sort({ order: 1, _id: 1 })
     .toArray();
 
-  const pendingById = new Map(ownedPending.map((task) => [task.id, task] as const));
+  const pendingById = new Map(ownedPending.map((task) => [task._id.toHexString(), task] as const));
 
   const nextOrderIds: string[] = [];
   for (const id of orderedPendingTaskIds) {
@@ -192,7 +201,7 @@ export async function reorderPendingTasksById(
   await collection.bulkWrite(
     nextOrderIds.map((id, index) => ({
       updateOne: {
-        filter: { id, ownerId: normalizedOwnerId, completed: false },
+        filter: { _id: new ObjectId(id), ownerId: normalizedOwnerId, completed: false },
         update: { $set: { order: index } },
       },
     }))
@@ -210,7 +219,7 @@ export async function setTaskCompletedById(
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
   await collection.updateOne(
-    { id: taskId, ownerId: normalizedOwnerId },
+    { _id: new ObjectId(taskId), ownerId: normalizedOwnerId },
     {
       $set: {
         completed,
@@ -226,5 +235,5 @@ export async function deleteTaskById(ownerId: string, taskId: string) {
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
-  await collection.deleteOne({ id: taskId, ownerId: normalizedOwnerId });
+  await collection.deleteOne({ _id: new ObjectId(taskId), ownerId: normalizedOwnerId });
 }

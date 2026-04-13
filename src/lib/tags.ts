@@ -1,6 +1,4 @@
-import { randomUUID } from "node:crypto";
-
-import type { Collection } from "mongodb";
+import { ObjectId, type Collection, type WithId } from "mongodb";
 
 import { getDb } from "@/lib/mongodb";
 
@@ -11,7 +9,7 @@ export type Tag = {
   createdAt: Date;
 };
 
-type TagDocument = Tag;
+type TagDocument = Omit<Tag, "id">;
 
 let ensureTagsReadyPromise: Promise<void> | undefined;
 
@@ -28,17 +26,23 @@ async function ensureTagsReady(): Promise<void> {
   if (!ensureTagsReadyPromise) {
     ensureTagsReadyPromise = (async () => {
       const collection = await getTagsCollection();
-      await collection.createIndex({ id: 1 }, { unique: true });
       await collection.createIndex({ ownerId: 1, name: 1 }, { unique: true });
+
+      // Drop the legacy `id` unique index if it exists
+      try {
+        await collection.dropIndex("id_1");
+      } catch {
+        // index may not exist
+      }
     })();
   }
 
   return ensureTagsReadyPromise;
 }
 
-function toTag(doc: TagDocument): Tag {
+function toTag(doc: WithId<TagDocument>): Tag {
   return {
-    id: doc.id,
+    id: doc._id.toHexString(),
     name: doc.name,
     ownerId: doc.ownerId,
     createdAt: doc.createdAt,
@@ -79,15 +83,17 @@ export async function createTag(ownerId: string, name: string): Promise<Tag> {
     throw new Error("Tag already exists");
   }
 
-  const tag: Tag = {
-    id: randomUUID(),
+  const doc = {
     name: trimmedName,
     ownerId: ownerId.trim(),
     createdAt: new Date(),
   };
 
-  await collection.insertOne(tag);
-  return tag;
+  const result = await collection.insertOne(doc);
+  return {
+    id: result.insertedId.toHexString(),
+    ...doc,
+  };
 }
 
 export async function deleteTag(ownerId: string, tagId: string): Promise<void> {
@@ -95,5 +101,5 @@ export async function deleteTag(ownerId: string, tagId: string): Promise<void> {
 
   await ensureTagsReady();
   const collection = await getTagsCollection();
-  await collection.deleteOne({ id: tagId.trim(), ownerId: ownerId.trim() });
+  await collection.deleteOne({ _id: new ObjectId(tagId.trim()), ownerId: ownerId.trim() });
 }

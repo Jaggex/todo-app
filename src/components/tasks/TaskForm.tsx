@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useActionState } from "react";
+import { useEffect, useRef, useState, useActionState, useTransition } from "react";
 
 import type { Tag } from "@/lib/tags";
 import { createTask } from "@/actions/tasks";
@@ -22,6 +22,21 @@ export function TaskForm({ tags }: TaskFormProps) {
     createTagAction,
     tagInitial
   );
+  const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (tagState.ok && tagInputRef.current) {
+      tagInputRef.current.value = "";
+    }
+  }, [tagState]);
+
+  function submitTag() {
+    const fd = new FormData();
+    fd.set("name", tagInputRef.current?.value ?? "");
+    startTransition(() => {
+      tagFormAction(fd);
+    });
+  }
 
   function toggleTag(name: string) {
     setSelectedTagNames((prev) => {
@@ -106,9 +121,7 @@ export function TaskForm({ tags }: TaskFormProps) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    const fd = new FormData();
-                    fd.set("name", tagInputRef.current?.value ?? "");
-                    tagFormAction(fd);
+                    submitTag();
                   }
                 }}
               />
@@ -117,9 +130,7 @@ export function TaskForm({ tags }: TaskFormProps) {
                 className="rounded-md bg-zinc-600 px-2.5 py-2 text-xs text-zinc-100 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
                 disabled={isTagPending}
                 onClick={() => {
-                  const fd = new FormData();
-                  fd.set("name", tagInputRef.current?.value ?? "");
-                  tagFormAction(fd);
+                  submitTag();
                 }}
               >
                 {isTagPending ? "…" : "Create"}
