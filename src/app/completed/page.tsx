@@ -5,6 +5,7 @@ import { TaskWindow } from "@/components/tasks/TaskWindow";
 import { TaskList } from "@/components/tasks/TaskList";
 import { TaskSearch } from "@/components/tasks/TaskSearch";
 import { TagFilter } from "@/components/tasks/TagFilter";
+import { Pagination } from "@/components/tasks/Pagination";
 import { getCompletedTasks } from "@/lib/tasks";
 import { getTagsByOwner } from "@/lib/tags";
 import { authOptions } from "@/lib/auth";
@@ -29,8 +30,15 @@ export default async function CompletedPage({
   const searchQuery = typeof resolvedSearchParams?.q === "string" ? resolvedSearchParams.q : undefined;
   const tagsParam = typeof resolvedSearchParams?.tags === "string" ? resolvedSearchParams.tags : undefined;
   const tagFilters = tagsParam ? tagsParam.split(",").filter(Boolean) : undefined;
-  const tasks = await getCompletedTasks(ownerId, searchQuery, tagFilters);
+  const rawPage = typeof resolvedSearchParams?.page === "string" ? parseInt(resolvedSearchParams.page, 10) : 1;
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+  const { tasks, totalPages } = await getCompletedTasks(ownerId, searchQuery, tagFilters, page);
   const tags = await getTagsByOwner(ownerId);
+
+  const paginationParams: Record<string, string> = {};
+  if (searchQuery) paginationParams.q = searchQuery;
+  if (tagsParam) paginationParams.tags = tagsParam;
 
   return (
     <TaskWindow title="Completed Tasks">
@@ -42,7 +50,10 @@ export default async function CompletedPage({
             {searchQuery ? "No tasks match your search." : "No completed tasks."}
           </div>
         ) : (
-          <TaskList tasks={tasks} />
+          <>
+            <TaskList tasks={tasks} />
+            <Pagination page={page} totalPages={totalPages} basePath="/completed" searchParams={paginationParams} />
+          </>
         )}
       </div>
     </TaskWindow>

@@ -103,8 +103,15 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
   return tasks.map(toTask);
 }
 
-export async function getCompletedTasks(ownerId: string, search?: string, tags?: string[]) {
-  if (!isNonEmptyString(ownerId)) return [];
+export const COMPLETED_TASKS_PAGE_SIZE = 25;
+
+export async function getCompletedTasks(
+  ownerId: string,
+  search?: string,
+  tags?: string[],
+  page = 1
+) {
+  if (!isNonEmptyString(ownerId)) return { tasks: [], totalPages: 0 };
   const normalizedOwnerId = normalizeOwnerId(ownerId);
 
   await ensureMongoTasksReady();
@@ -125,12 +132,22 @@ export async function getCompletedTasks(ownerId: string, search?: string, tags?:
     filter.$or = [{ title: regex }, { message: regex }, { tags: regex }];
   }
 
-  const tasks = await collection
-    .find(filter)
-    .sort({ order: 1, _id: 1 })
-    .toArray();
+  const safePage = Math.max(1, Math.floor(page));
+  const skip = (safePage - 1) * COMPLETED_TASKS_PAGE_SIZE;
 
-  return tasks.map(toTask);
+  const [taskDocs, totalCount] = await Promise.all([
+    collection
+      .find(filter)
+      .sort({ order: 1, _id: 1 })
+      .skip(skip)
+      .limit(COMPLETED_TASKS_PAGE_SIZE)
+      .toArray(),
+    collection.countDocuments(filter),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / COMPLETED_TASKS_PAGE_SIZE);
+
+  return { tasks: taskDocs.map(toTask), totalPages };
 }
 
 export async function addTask(ownerId: string, title: string, message?: string, dueDate?: Date, tags?: string[]) {
