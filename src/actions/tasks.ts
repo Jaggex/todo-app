@@ -9,6 +9,7 @@ import { authOptions } from "@/lib/auth";
 import {
   addTask,
   deleteTaskById,
+  deleteTasksByIds,
   reorderPendingTasksById,
   setTaskCompletedById,
   updateTaskById,
@@ -144,5 +145,20 @@ export async function updateTask(
   });
 
   revalidatePath("/");
+  revalidatePath("/completed");
+}
+
+const taskIdsSchema = z
+  .array(z.string().min(1))
+  .min(1)
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, "Duplicate task ids");
+
+export async function deleteSelectedTasks(taskIds: string[]) {
+  const session = await requireSession();
+  const ownerId = requireOwnerId(session);
+  const ids = taskIdsSchema.parse(taskIds);
+
+  await deleteTasksByIds(ownerId, ids);
   revalidatePath("/completed");
 }

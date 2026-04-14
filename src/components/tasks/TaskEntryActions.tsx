@@ -2,7 +2,7 @@
 
 type TaskEntryActionsProps = {
   completed: boolean;
-  onCompletedChange: (completed: boolean) => void;
+  onCompletedChange?: (completed: boolean) => void;
   onDelete: () => void;
   onEdit?: () => void;
 };
@@ -21,19 +21,21 @@ export function TaskEntryActions({
 
   return (
     <div className="flex items-center gap-3">
-      <label
-        className="flex items-center gap-2 text-xs text-zinc-300"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <input
-          type="checkbox"
-          checked={completed}
-          onChange={(e) => onCompletedChange(e.target.checked)}
-          className="h-4 w-4 accent-zinc-200"
+      {onCompletedChange ? (
+        <label
+          className="flex items-center gap-2 text-xs text-zinc-300"
           onPointerDown={(e) => e.stopPropagation()}
-        />
-        Complete
-      </label>
+        >
+          <input
+            type="checkbox"
+            checked={completed}
+            onChange={(e) => onCompletedChange(e.target.checked)}
+            className="h-4 w-4 accent-zinc-200"
+            onPointerDown={(e) => e.stopPropagation()}
+          />
+          Complete
+        </label>
+      ) : null}
 
       {onEdit ? (
         <button

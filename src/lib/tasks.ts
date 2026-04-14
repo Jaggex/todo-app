@@ -263,3 +263,13 @@ export async function deleteTaskById(ownerId: string, taskId: string) {
   const collection = await getTasksCollection();
   await collection.deleteOne({ _id: new ObjectId(taskId), ownerId: normalizedOwnerId });
 }
+
+export async function deleteTasksByIds(ownerId: string, taskIds: string[]) {
+  if (!isNonEmptyString(ownerId) || taskIds.length === 0) return;
+  const normalizedOwnerId = normalizeOwnerId(ownerId);
+  const objectIds = taskIds.map((id) => new ObjectId(id));
+
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  await collection.deleteMany({ _id: { $in: objectIds }, ownerId: normalizedOwnerId });
+}
