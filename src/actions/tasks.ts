@@ -12,8 +12,12 @@ import {
   deleteTasksByIds,
   reorderPendingTasksById,
   setTaskCompletedById,
+  setSharedTaskCompletedById,
+  deleteSharedTaskById,
   updateTaskById,
+  type TaskScope,
 } from "@/lib/tasks";
+import { getWorkspaceMembership } from "@/lib/workspaces";
 
 async function requireSession() {
   const session = await getServerSession(authOptions);
@@ -50,13 +54,23 @@ export async function createTaskAction(
   const dueDate = typeof rawDueDate === "string" && rawDueDate ? new Date(rawDueDate) : undefined;
   const rawTags = formData.get("tags");
   const tags = typeof rawTags === "string" && rawTags ? rawTags.split(",").filter(Boolean) : [];
+  const rawScope = formData.get("scope");
+  const scope: TaskScope = rawScope === "shared" ? "shared" : "personal";
+  const rawWorkspaceId = formData.get("workspaceId");
+  const workspaceId = scope === "shared" && typeof rawWorkspaceId === "string" && rawWorkspaceId ? rawWorkspaceId : undefined;
 
   if (!title.trim()) {
     return { ok: false, message: "Please enter a task title." };
   }
 
+  if (scope === "shared") {
+    if (!workspaceId) return { ok: false, message: "Please select a workspace." };
+    const membership = await getWorkspaceMembership(workspaceId, ownerId);
+    if (!membership) return { ok: false, message: "You are not a member of that workspace." };
+  }
+
   try {
-    await addTask(ownerId, title, message, dueDate, tags);
+    await addTask(ownerId, title, message, dueDate, tags, { scope, workspaceId, createdBy: ownerId });
   } catch {
     return { ok: false, message: "Could not save task." };
   }
@@ -78,12 +92,21 @@ export async function createTask(formData: FormData): Promise<void> {
   const dueDate = typeof rawDueDate === "string" && rawDueDate ? new Date(rawDueDate) : undefined;
   const rawTags = formData.get("tags");
   const tags = typeof rawTags === "string" && rawTags ? rawTags.split(",").filter(Boolean) : [];
+  const rawScope = formData.get("scope");
+  const scope: TaskScope = rawScope === "shared" ? "shared" : "personal";
+  const rawWorkspaceId = formData.get("workspaceId");
+  const workspaceId = scope === "shared" && typeof rawWorkspaceId === "string" && rawWorkspaceId ? rawWorkspaceId : undefined;
 
   if (!title.trim()) {
     redirect("/?new=1");
   }
 
-  await addTask(ownerId, title, message, dueDate, tags);
+  if (scope === "shared" && workspaceId) {
+    const membership = await getWorkspaceMembership(workspaceId, ownerId);
+    if (!membership) redirect("/?new=1");
+  }
+
+  await addTask(ownerId, title, message, dueDate, tags, { scope, workspaceId, createdBy: ownerId });
   revalidatePath("/");
   revalidatePath("/completed");
   redirect("/");
@@ -161,4 +184,35 @@ export async function deleteSelectedTasks(taskIds: string[]) {
 
   await deleteTasksByIds(ownerId, ids);
   revalidatePath("/completed");
+}
+
+export async function setSharedTaskCompleted(
+  taskId: string,
+  workspaceId: string,
+  completed: boolean
+) {
+  const session = await requireSession();
+  const ownerId = requireOwnerId(session);
+  const id = taskIdSchema.parse(taskId);
+  const wsId = taskIdSchema.parse(workspaceId);
+  const isCompleted = z.boolean().parse(completed);
+
+  const membership = await getWorkspaceMembership(wsId, ownerId);
+  if (!membership) throw new Error("Not a workspace member");
+
+  await setSharedTaskCompletedById(id, wsId, isCompleted);
+  revalidatePath("/");
+}
+
+export async function deleteSharedTask(taskId: string, workspaceId: string) {
+  const session = await requireSession();
+  const ownerId = requireOwnerId(session);
+  const id = taskIdSchema.parse(taskId);
+  const wsId = taskIdSchema.parse(workspaceId);
+
+  const membership = await getWorkspaceMembership(wsId, ownerId);
+  if (!membership) throw new Error("Not a workspace member");
+
+  await deleteSharedTaskById(id, wsId);
+  revalidatePath("/");
 }

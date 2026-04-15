@@ -3,6 +3,7 @@ import Link from "next/link";
 const navItems = [
   { href: "/", label: "Pending" },
   { href: "/completed", label: "Completed" },
+  { href: "/workspaces", label: "Workspaces" },
 ];
 
 export function Sidebar() {

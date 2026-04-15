@@ -125,6 +125,19 @@ export async function listUsers(): Promise<User[]> {
   return users.map(toUser);
 }
 
+export async function getUsersByIds(ids: string[]): Promise<User[]> {
+  if (ids.length === 0) return [];
+  const objectIds = ids.flatMap((id) => {
+    try { return [new ObjectId(id.trim())]; } catch { return []; }
+  });
+  if (objectIds.length === 0) return [];
+
+  await ensureUsersReady();
+  const collection = await getUsersCollection();
+  const users = await collection.find({ _id: { $in: objectIds } }).toArray();
+  return users.map(toUser);
+}
+
 export async function createUser(input: CreateUserInput): Promise<User> {
   const email = normalizeEmail(input.email);
   const passwordHash = input.passwordHash.trim();

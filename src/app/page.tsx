@@ -5,10 +5,12 @@ import { getServerSession } from "next-auth/next";
 import { TaskWindow } from "@/components/tasks/TaskWindow";
 import { TaskCreateWindow } from "@/components/tasks/TaskCreateWindow";
 import { TaskListDnd } from "@/components/tasks/TaskListDnd";
+import { SharedTaskList } from "@/components/tasks/SharedTaskList";
 import { TaskSearch } from "@/components/tasks/TaskSearch";
 import { TagFilter } from "@/components/tasks/TagFilter";
-import { getPendingTasks } from "@/lib/tasks";
+import { getPendingTasks, getSharedPendingTasks } from "@/lib/tasks";
 import { getTagsByOwner } from "@/lib/tags";
+import { getWorkspacesByUserId } from "@/lib/workspaces";
 import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +34,25 @@ export default async function Home({
   const searchQuery = typeof resolvedSearchParams?.q === "string" ? resolvedSearchParams.q : undefined;
   const tagsParam = typeof resolvedSearchParams?.tags === "string" ? resolvedSearchParams.tags : undefined;
   const tagFilters = tagsParam ? tagsParam.split(",").filter(Boolean) : undefined;
-  const tasks = await getPendingTasks(ownerId, searchQuery, tagFilters);
-  const tags = await getTagsByOwner(ownerId);
+
+  const [tasks, tags, workspaces] = await Promise.all([
+    getPendingTasks(ownerId, searchQuery, tagFilters),
+    getTagsByOwner(ownerId),
+    getWorkspacesByUserId(ownerId),
+  ]);
+
+  const workspaceIds = workspaces.map((ws) => ws.id);
+  const sharedTasks = await getSharedPendingTasks(workspaceIds);
+
+  // Group shared tasks by workspaceId
+  const sharedByWorkspace = new Map<string, typeof sharedTasks>();
+  for (const task of sharedTasks) {
+    if (!task.workspaceId) continue;
+    if (!sharedByWorkspace.has(task.workspaceId)) {
+      sharedByWorkspace.set(task.workspaceId, []);
+    }
+    sharedByWorkspace.get(task.workspaceId)!.push(task);
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -48,7 +67,7 @@ export default async function Home({
 
       {isNewOpen ? (
         <div className="mb-5">
-          <TaskCreateWindow tags={tags} />
+          <TaskCreateWindow tags={tags} workspaces={workspaces} />
         </div>
       ) : null}
 
@@ -65,6 +84,15 @@ export default async function Home({
           )}
         </div>
       </TaskWindow>
+
+      {workspaces.map((ws) => {
+        const wsSharedTasks = sharedByWorkspace.get(ws.id) ?? [];
+        return (
+          <TaskWindow key={ws.id} title={`${ws.name} — Shared Tasks`}>
+            <SharedTaskList tasks={wsSharedTasks} workspaceId={ws.id} />
+          </TaskWindow>
+        );
+      })}
     </div>
   );
 }

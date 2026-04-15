@@ -3,20 +3,24 @@
 import { useEffect, useRef, useState, useActionState, useTransition } from "react";
 
 import type { Tag } from "@/lib/tags";
+import type { Workspace } from "@/lib/workspaces";
 import { createTask } from "@/actions/tasks";
 import { createTagAction, deleteTagAction, type TagActionState } from "@/actions/tags";
 
 type TaskFormProps = {
   tags: Tag[];
+  workspaces?: Workspace[];
 };
 
 const tagInitial: TagActionState = { ok: false };
 
-export function TaskForm({ tags }: TaskFormProps) {
+export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
   const [selectedTagNames, setSelectedTagNames] = useState<Set<string>>(
     () => new Set()
   );
   const [showNewTag, setShowNewTag] = useState(false);
+  const [scope, setScope] = useState<"personal" | "shared">("personal");
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>("");
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [tagState, tagFormAction, isTagPending] = useActionState(
     createTagAction,
@@ -29,6 +33,13 @@ export function TaskForm({ tags }: TaskFormProps) {
       tagInputRef.current.value = "";
     }
   }, [tagState]);
+
+  // Default workspace selection when switching to shared
+  useEffect(() => {
+    if (scope === "shared" && !selectedWorkspaceId && workspaces.length > 0) {
+      setSelectedWorkspaceId(workspaces[0].id);
+    }
+  }, [scope, selectedWorkspaceId, workspaces]);
 
   function submitTag() {
     const fd = new FormData();
@@ -74,6 +85,55 @@ export function TaskForm({ tags }: TaskFormProps) {
           name="tags"
           value={Array.from(selectedTagNames).join(",")}
         />
+
+        <input type="hidden" name="scope" value={scope} />
+        {scope === "shared" && (
+          <input type="hidden" name="workspaceId" value={selectedWorkspaceId} />
+        )}
+
+        {workspaces.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-400">Scope:</span>
+            <button
+              type="button"
+              onClick={() => setScope("personal")}
+              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+                scope === "personal"
+                  ? "bg-zinc-200 text-zinc-900"
+                  : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+              }`}
+            >
+              Personal
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope("shared")}
+              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+                scope === "shared"
+                  ? "bg-zinc-200 text-zinc-900"
+                  : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+              }`}
+            >
+              Shared
+            </button>
+            {scope === "shared" && workspaces.length > 1 && (
+              <select
+                value={selectedWorkspaceId}
+                onChange={(e) => setSelectedWorkspaceId(e.target.value)}
+                className="rounded-md bg-zinc-700 px-2 py-1 text-xs text-zinc-300"
+              >
+                {workspaces.map((ws) => (
+                  <option key={ws.id} value={ws.id}>
+                    {ws.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {scope === "shared" && workspaces.length === 1 && (
+              <span className="text-xs text-zinc-400">→ {workspaces[0].name}</span>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-1.5">
           <button

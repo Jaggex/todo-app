@@ -2,6 +2,8 @@ import { ObjectId, type Collection, type WithId } from "mongodb";
 
 import { getDb } from "@/lib/mongodb";
 
+export type TaskScope = "personal" | "shared";
+
 export type Task = {
   id: string;
   title: string;
@@ -10,6 +12,9 @@ export type Task = {
   tags: string[];
   completed: boolean;
   ownerId: string;
+  scope: TaskScope;
+  workspaceId?: string;
+  createdBy?: string;
 };
 
 type TaskDocument = Omit<Task, "id"> & {
@@ -40,6 +45,9 @@ function toTask(task: WithId<TaskDocument>): Task {
     tags: task.tags ?? [],
     completed: task.completed,
     ownerId: task.ownerId,
+    scope: task.scope ?? "personal",
+    workspaceId: task.workspaceId,
+    createdBy: task.createdBy,
   };
 }
 
@@ -105,6 +113,20 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
 
 export const COMPLETED_TASKS_PAGE_SIZE = 25;
 
+export async function getSharedPendingTasks(workspaceIds: string[]): Promise<Task[]> {
+  if (!workspaceIds.length) return [];
+
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+
+  const tasks = await collection
+    .find({ scope: "shared", workspaceId: { $in: workspaceIds }, completed: false })
+    .sort({ _id: -1 })
+    .toArray();
+
+  return tasks.map(toTask);
+}
+
 export async function getCompletedTasks(
   ownerId: string,
   search?: string,
@@ -150,7 +172,20 @@ export async function getCompletedTasks(
   return { tasks: taskDocs.map(toTask), totalPages };
 }
 
-export async function addTask(ownerId: string, title: string, message?: string, dueDate?: Date, tags?: string[]) {
+export type AddTaskOptions = {
+  scope?: TaskScope;
+  workspaceId?: string;
+  createdBy?: string;
+};
+
+export async function addTask(
+  ownerId: string,
+  title: string,
+  message?: string,
+  dueDate?: Date,
+  tags?: string[],
+  options: AddTaskOptions = {}
+) {
   if (!isNonEmptyString(ownerId)) {
     throw new Error("Owner is required");
   }
@@ -162,28 +197,27 @@ export async function addTask(ownerId: string, title: string, message?: string, 
   }
 
   const trimmedMessage = typeof message === "string" ? message.trim() : "";
+  const scope = options.scope ?? "personal";
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
-  const doc = {
+  const doc: Omit<TaskDocument, "_id"> = {
     title: trimmedTitle,
     message: trimmedMessage ? trimmedMessage : undefined,
     dueDate: dueDate ?? undefined,
     tags: tags ?? [],
     completed: false,
     ownerId: normalizedOwnerId,
+    scope,
+    workspaceId: options.workspaceId,
+    createdBy: options.createdBy,
     order: await getNextOrder(normalizedOwnerId, false),
   };
 
-  const result = await collection.insertOne(doc);
+  const result = await collection.insertOne(doc as TaskDocument);
   return {
     id: result.insertedId.toHexString(),
-    title: doc.title,
-    message: doc.message,
-    dueDate: doc.dueDate,
-    tags: doc.tags,
-    completed: doc.completed,
-    ownerId: doc.ownerId,
+    ...doc,
   };
 }
 
@@ -289,4 +323,26 @@ export async function deleteTasksByIds(ownerId: string, taskIds: string[]) {
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
   await collection.deleteMany({ _id: { $in: objectIds }, ownerId: normalizedOwnerId });
+}
+
+// Workspace-scoped operations: any member can complete/delete shared tasks.
+// The caller must verify workspace membership before calling these.
+
+export async function setSharedTaskCompletedById(
+  taskId: string,
+  workspaceId: string,
+  completed: boolean
+) {
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  await collection.updateOne(
+    { _id: new ObjectId(taskId), scope: "shared", workspaceId },
+    { $set: { completed, order: 0 } }
+  );
+}
+
+export async function deleteSharedTaskById(taskId: string, workspaceId: string) {
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  await collection.deleteOne({ _id: new ObjectId(taskId), scope: "shared", workspaceId });
 }
