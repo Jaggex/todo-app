@@ -25,7 +25,6 @@ export function CreateWorkspaceForm() {
         <input
           name="name"
           className="w-full rounded-md bg-zinc-700 px-3 py-2 text-sm text-white placeholder-zinc-500"
-          placeholder="e.g. Acme Corp"
           required
           maxLength={80}
           disabled={isPending}

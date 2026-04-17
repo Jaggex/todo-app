@@ -41,7 +41,10 @@ export default async function CompletedPage({
   if (tagsParam) paginationParams.tags = tagsParam;
 
   return (
-    <TaskWindow title="Completed Tasks">
+    <div className="flex flex-col gap-3">
+      <h2 className="text-2xl font-semibold text-white text-center">Completed tasks</h2>
+
+      <TaskWindow>
       <div className="space-y-3">
         <TaskSearch basePath="/completed" />
         <TagFilter tags={tags} basePath="/completed" />
@@ -56,6 +59,7 @@ export default async function CompletedPage({
           </>
         )}
       </div>
-    </TaskWindow>
+      </TaskWindow>
+    </div>
   );
 }

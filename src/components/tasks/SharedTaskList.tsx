@@ -6,14 +6,18 @@ import type { Task } from "@/lib/tasks";
 import { setSharedTaskCompleted, deleteSharedTask } from "@/actions/tasks";
 import { TaskEntry } from "@/components/tasks/TaskEntry";
 import { TaskEntryActions } from "@/components/tasks/TaskEntryActions";
+import { TaskEditForm } from "@/components/tasks/TaskEditForm";
+import type { Tag } from "@/lib/tags";
 
 type SharedTaskListProps = {
   tasks: Task[];
   workspaceId: string;
+  allTags: Tag[];
 };
 
-export function SharedTaskList({ tasks, workspaceId }: SharedTaskListProps) {
+export function SharedTaskList({ tasks, workspaceId, allTags }: SharedTaskListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function handleCompletedChange(taskId: string, completed: boolean) {
@@ -38,30 +42,49 @@ export function SharedTaskList({ tasks, workspaceId }: SharedTaskListProps) {
 
   return (
     <div className="space-y-1">
-      {tasks.map((task, index) => (
-        <TaskEntry
-          key={task.id}
-          index={index}
-          title={task.title}
-          message={task.message}
-          dueDate={task.dueDate}
-          tags={task.tags}
-          completed={task.completed}
-          expanded={expandedId === task.id}
-          onToggleExpanded={() =>
-            setExpandedId((prev) => (prev === task.id ? null : task.id))
-          }
-          rightSlot={
-            <TaskEntryActions
-              completed={task.completed}
-              onCompletedChange={(completed) =>
-                handleCompletedChange(task.id, completed)
-              }
-              onDelete={() => handleDelete(task.id)}
+      {tasks.map((task, index) =>
+        editingTaskId === task.id ? (
+          <div
+            key={task.id}
+            className={`rounded-xl p-4 ${index % 2 === 0 ? "bg-zinc-700" : "bg-zinc-800"}`}
+          >
+            <TaskEditForm
+              taskId={task.id}
+              initialTitle={task.title}
+              initialMessage={task.message}
+              initialDueDate={task.dueDate}
+              initialTags={task.tags}
+              allTags={allTags}
+              bgVariant={index % 2 === 0 ? "zinc-700" : "zinc-800"}
+              onCancel={() => setEditingTaskId(null)}
             />
-          }
-        />
-      ))}
+          </div>
+        ) : (
+          <TaskEntry
+            key={task.id}
+            index={index}
+            title={task.title}
+            message={task.message}
+            dueDate={task.dueDate}
+            tags={task.tags}
+            completed={task.completed}
+            expanded={expandedId === task.id}
+            onToggleExpanded={() =>
+              setExpandedId((prev) => (prev === task.id ? null : task.id))
+            }
+            rightSlot={
+              <TaskEntryActions
+                completed={task.completed}
+                onCompletedChange={(completed) =>
+                  handleCompletedChange(task.id, completed)
+                }
+                onDelete={() => handleDelete(task.id)}
+                onEdit={() => setEditingTaskId(task.id)}
+              />
+            }
+          />
+        )
+      )}
     </div>
   );
 }

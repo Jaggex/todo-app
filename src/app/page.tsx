@@ -56,6 +56,8 @@ export default async function Home({
 
   return (
     <div className="flex flex-col gap-3">
+      <h2 className="text-3xl font-semibold text-white text-center">Pending tasks</h2>
+
       <div className="flex items-start justify-between">
         <Link
           className="rounded-md px-3 py-2 text-sm text-gray-300 bg-zinc-800 hover:bg-neutral-100 hover:text-black"
@@ -71,25 +73,25 @@ export default async function Home({
         </div>
       ) : null}
 
-      <TaskWindow title="Pending Tasks">
-        <div className="space-y-3">
-          <TaskSearch basePath="/" />
-          <TagFilter tags={tags} basePath="/" />
-          {tasks.length === 0 ? (
-            <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
-              {searchQuery ? "No tasks match your search." : "No pending tasks."}
-            </div>
-          ) : (
-            <TaskListDnd tasks={tasks} allTags={tags} />
-          )}
-        </div>
-      </TaskWindow>
+      <TaskWindow title="Personal Tasks">
+          <div className="space-y-3">
+            <TaskSearch basePath="/" />
+            <TagFilter tags={tags} basePath="/" />
+            {tasks.length === 0 ? (
+              <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
+                {searchQuery ? "No tasks match your search." : "No pending tasks."}
+              </div>
+            ) : (
+              <TaskListDnd tasks={tasks} allTags={tags} />
+            )}
+          </div>
+        </TaskWindow>
 
       {workspaces.map((ws) => {
         const wsSharedTasks = sharedByWorkspace.get(ws.id) ?? [];
         return (
           <TaskWindow key={ws.id} title={`${ws.name} — Shared Tasks`}>
-            <SharedTaskList tasks={wsSharedTasks} workspaceId={ws.id} />
+            <SharedTaskList tasks={wsSharedTasks} workspaceId={ws.id} allTags={tags} />
           </TaskWindow>
         );
       })}
