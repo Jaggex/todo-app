@@ -17,6 +17,7 @@ import {
   markInviteUsed,
   removeWorkspaceMember,
 } from "@/lib/workspaces";
+import { sendWorkspaceInviteEmail } from "@/lib/email";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,25 +80,45 @@ export async function createWorkspaceAction(
 }
 
 // ---------------------------------------------------------------------------
-// Generate invite link
+// Send email invite
 // ---------------------------------------------------------------------------
 
-export async function generateInviteAction(
-  workspaceId: string
+const emailSchema = z.string().email("Please enter a valid email address.");
+
+export async function sendInviteAction(
+  workspaceId: string,
+  email: string,
+  workspaceName: string,
+  baseUrl: string
 ): Promise<WorkspaceActionState> {
   const session = await requireSession();
   const userId = requireUserId(session);
 
+  const parsedEmail = emailSchema.safeParse(email);
+  if (!parsedEmail.success) {
+    return { ok: false, message: parsedEmail.error.issues[0].message };
+  }
+  const normalizedEmail = parsedEmail.data.trim().toLowerCase();
+
   const membership = await getWorkspaceMembership(workspaceId, userId);
   if (!membership || membership.role !== "owner") {
-    return { ok: false, message: "Only workspace owners can generate invite links." };
+    return { ok: false, message: "Only workspace owners can invite users." };
+  }
+
+  // Prevent duplicate pending invites to the same email
+  const existing = await getActiveInvitesForWorkspace(workspaceId);
+  if (existing.some((inv) => inv.email === normalizedEmail)) {
+    return { ok: false, message: "An active invite has already been sent to that email." };
   }
 
   try {
-    const invite = await createWorkspaceInvite(workspaceId, userId);
-    return { ok: true, inviteToken: invite.token };
+    const invite = await createWorkspaceInvite(workspaceId, userId, normalizedEmail);
+    const inviteUrl = `${baseUrl}/join/${invite.token}`;
+    await sendWorkspaceInviteEmail(normalizedEmail, workspaceName, inviteUrl);
+    revalidatePath(`/workspaces/${workspaceId}`);
+    return { ok: true };
   } catch {
-    return { ok: false, message: "Could not generate invite link." };
+    return { ok: false, message: "Could not send invite email." };
   }
 }
 

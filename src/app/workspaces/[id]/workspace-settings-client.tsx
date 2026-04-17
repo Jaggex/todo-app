@@ -2,121 +2,156 @@
 
 import { useState, useTransition } from "react";
 
-import { generateInviteAction, revokeInviteAction, removeMemberAction, leaveWorkspaceAction } from "@/actions/workspaces";
+import { sendInviteAction, revokeInviteAction, removeMemberAction, leaveWorkspaceAction } from "@/actions/workspaces";
 import type { WorkspaceMember, WorkspaceInvite } from "@/lib/workspaces";
 import { useRouter } from "next/navigation";
 
 // ---------------------------------------------------------------------------
-// Invite link generator
+// Invite section (email-based)
 // ---------------------------------------------------------------------------
 
-export function InviteLinkSection({
+export function InviteSection({
   workspaceId,
+  workspaceName,
   baseUrl,
-  existingInvites,
+  pendingInvites,
 }: {
   workspaceId: string;
+  workspaceName: string;
   baseUrl: string;
-  existingInvites: WorkspaceInvite[];
+  pendingInvites: WorkspaceInvite[];
 }) {
   const [isPending, startTransition] = useTransition();
-  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+  const [showInput, setShowInput] = useState(false);
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  const activeToken = generatedToken ?? existingInvites[0]?.token ?? null;
-  const inviteUrl = activeToken ? `${baseUrl}/join/${activeToken}` : null;
-
-  function handleGenerate() {
+  function handleInvite() {
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
-      const result = await generateInviteAction(workspaceId);
-      if (result.ok && result.inviteToken) {
-        setGeneratedToken(result.inviteToken);
+      const result = await sendInviteAction(workspaceId, email, workspaceName, baseUrl);
+      if (result.ok) {
+        setEmail("");
+        setShowInput(false);
+        setSuccess("Invite sent.");
         router.refresh();
       } else {
-        setError(result.message ?? "Failed to generate link.");
+        setError(result.message ?? "Failed to send invite.");
       }
     });
   }
 
-  function handleCopy() {
-    if (!inviteUrl) return;
-    navigator.clipboard.writeText(inviteUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-
-  function handleRevoke(inviteId: string) {
+  function handleRevoke(inviteId: string, recipientEmail: string) {
+    if (!window.confirm(`Revoke invite sent to ${recipientEmail}?`)) return;
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       const result = await revokeInviteAction(workspaceId, inviteId);
       if (result.ok) {
-        setGeneratedToken(null);
         router.refresh();
       } else {
-        setError(result.message ?? "Failed to revoke.");
+        setError(result.message ?? "Failed to revoke invite.");
       }
     });
   }
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-medium text-zinc-300">Invite link</h2>
-
-      {inviteUrl ? (
-        <div className="rounded-xl bg-zinc-800 p-4 space-y-2">
-          <p className="break-all rounded-md bg-zinc-700 px-3 py-2 text-xs text-zinc-300 font-mono select-all">
-            {inviteUrl}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={isPending}
-              className="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
-            >
-              {copied ? "Copied!" : "Copy link"}
-            </button>
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={isPending}
-              className="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-zinc-400 hover:text-white disabled:opacity-60"
-            >
-              {isPending ? "…" : "New link"}
-            </button>
-            {existingInvites[0] ? (
-              <button
-                type="button"
-                onClick={() => handleRevoke(existingInvites[0].id)}
-                disabled={isPending}
-                className="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-zinc-400 hover:text-red-400 disabled:opacity-60"
-              >
-                Revoke
-              </button>
-            ) : null}
-          </div>
-          <p className="text-xs text-zinc-500">
-            Expires {existingInvites[0] ? new Date(existingInvites[0].expiresAt).toLocaleDateString("fi-FI") : "soon"}. Share this link with teammates.
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-xl bg-zinc-800 p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-medium text-zinc-300">Invitations</h2>
+        {!showInput && (
           <button
             type="button"
-            onClick={handleGenerate}
-            disabled={isPending}
-            className="rounded-md bg-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+            onClick={() => { setShowInput(true); setSuccess(null); setError(null); }}
+            className="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black"
           >
-            {isPending ? "Generating…" : "Generate invite link"}
+            Invite user
           </button>
+        )}
+      </div>
+
+      {showInput && (
+        <div className="rounded-xl bg-zinc-800 p-4 space-y-3">
+          <p className="text-xs text-zinc-400">Enter the email address of the person you want to invite.</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+              autoFocus
+              disabled={isPending}
+              onKeyDown={(e) => { if (e.key === "Enter") handleInvite(); if (e.key === "Escape") setShowInput(false); }}
+              className="flex-1 rounded-md bg-zinc-700 px-3 py-2 text-sm text-white placeholder:text-zinc-500 disabled:opacity-60"
+            />
+            <button
+              type="button"
+              onClick={handleInvite}
+              disabled={isPending || !email.trim()}
+              className="rounded-md bg-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+            >
+              {isPending ? "Sending…" : "Send invite"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowInput(false)}
+              className="text-xs text-zinc-400 hover:text-red-400"
+            >
+              Cancel
+            </button>
+          </div>
+          {error && <p className="text-xs text-red-400">{error}</p>}
         </div>
       )}
 
-      {error ? <p className="text-xs text-red-400">{error}</p> : null}
+      {success && !showInput && (
+        <p className="text-xs text-green-400">{success}</p>
+      )}
+
+      {pendingInvites.length > 0 && (
+        <div className="rounded-xl bg-zinc-800 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-700">
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-zinc-400">Sent to</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-zinc-400">Sent at</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-zinc-400">Expires</th>
+                <th className="px-4 py-2.5" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-700">
+              {pendingInvites.map((inv) => (
+                <tr key={inv.id}>
+                  <td className="px-4 py-2.5 text-xs text-white">{inv.email}</td>
+                  <td className="px-4 py-2.5 text-xs text-zinc-400">
+                    {new Date(inv.createdAt).toLocaleDateString("fi-FI")}
+                  </td>
+                  <td className="px-4 py-2.5 text-xs text-zinc-400">
+                    {new Date(inv.expiresAt).toLocaleDateString("fi-FI")}
+                  </td>
+                  <td className="px-4 py-2.5 text-right">
+                    <button
+                      type="button"
+                      onClick={() => handleRevoke(inv.id, inv.email)}
+                      disabled={isPending}
+                      className="text-xs text-zinc-500 hover:text-red-400 disabled:opacity-60"
+                    >
+                      Revoke
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {pendingInvites.length === 0 && !showInput && (
+        <p className="text-xs text-zinc-500">No pending invitations.</p>
+      )}
     </div>
   );
 }

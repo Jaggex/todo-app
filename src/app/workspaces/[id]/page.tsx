@@ -10,7 +10,7 @@ import {
   getActiveInvitesForWorkspace,
 } from "@/lib/workspaces";
 import { getUsersByIds } from "@/lib/users";
-import { InviteLinkSection, MemberList } from "./workspace-settings-client";
+import { InviteSection, MemberList } from "./workspace-settings-client";
 
 export const dynamic = "force-dynamic";
 
@@ -66,10 +66,11 @@ export default async function WorkspaceSettingsPage({
       />
 
       {membership.role === "owner" ? (
-        <InviteLinkSection
+        <InviteSection
           workspaceId={id}
+          workspaceName={workspace.name}
           baseUrl={baseUrl}
-          existingInvites={invites}
+          pendingInvites={invites}
         />
       ) : null}
     </div>

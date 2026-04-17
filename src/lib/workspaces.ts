@@ -30,6 +30,8 @@ export type WorkspaceInvite = {
   workspaceId: string;
   token: string;
   createdBy: string; // userId
+  email: string;
+  createdAt: Date;
   expiresAt: Date;
   usedAt: Date | null;
 };
@@ -118,6 +120,8 @@ function toInvite(doc: WithId<WorkspaceInviteDocument>): WorkspaceInvite {
     workspaceId: doc.workspaceId,
     token: doc.token,
     createdBy: doc.createdBy,
+    email: doc.email,
+    createdAt: doc.createdAt,
     expiresAt: doc.expiresAt,
     usedAt: doc.usedAt,
   };
@@ -234,12 +238,14 @@ const INVITE_EXPIRY_DAYS = 7;
 
 export async function createWorkspaceInvite(
   workspaceId: string,
-  createdBy: string
+  createdBy: string,
+  email: string
 ): Promise<WorkspaceInvite> {
   await ensureWorkspacesReady();
   const collection = await getInvitesCollection();
 
   const token = randomBytes(32).toString("hex");
+  const now = new Date();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + INVITE_EXPIRY_DAYS);
 
@@ -247,6 +253,8 @@ export async function createWorkspaceInvite(
     workspaceId,
     token,
     createdBy,
+    email: email.trim().toLowerCase(),
+    createdAt: now,
     expiresAt,
     usedAt: null,
   };

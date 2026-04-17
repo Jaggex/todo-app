@@ -78,3 +78,21 @@ export async function sendPasswordResetEmail(
     `,
   });
 }
+
+export async function sendWorkspaceInviteEmail(
+  to: string,
+  workspaceName: string,
+  inviteUrl: string
+): Promise<void> {
+  await getTransporter().sendMail({
+    from: emailFrom,
+    to,
+    subject: `You've been invited to "${workspaceName}" on Worktasks`,
+    text: `You have been invited to join the workspace "${workspaceName}" on Worktasks.\n\nClick the link below to accept the invitation:\n\n${inviteUrl}\n\nThis invitation expires in 7 days. If you were not expecting this, you can ignore this email.`,
+    html: `
+      <p>You have been invited to join the workspace <strong>${workspaceName}</strong> on Worktasks.</p>
+      <p><a href="${inviteUrl}">Accept invitation</a></p>
+      <p>This invitation expires in 7 days. If you were not expecting this, you can ignore this email.</p>
+    `,
+  });
+}
