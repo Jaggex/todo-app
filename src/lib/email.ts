@@ -41,10 +41,11 @@ function getBaseUrl(): string {
 
 export async function sendVerificationEmail(
   to: string,
-  token: string
+  token: string,
+  next?: string
 ): Promise<void> {
   const baseUrl = getBaseUrl();
-  const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
+  const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}${next ? `&next=${encodeURIComponent(next)}` : ``}`;
 
   await getTransporter().sendMail({
     from: emailFrom,

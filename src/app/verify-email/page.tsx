@@ -3,11 +3,11 @@ import Link from "next/link";
 import { verifyEmail } from "@/lib/users";
 
 type Props = {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; next?: string }>;
 };
 
 export default async function VerifyEmailPage({ searchParams }: Props) {
-  const { token } = await searchParams;
+  const { token, next } = await searchParams;
 
   let success = false;
   let message = "Invalid or missing verification token.";
@@ -34,7 +34,7 @@ export default async function VerifyEmailPage({ searchParams }: Props) {
       </div>
 
       <div className="text-xs text-zinc-400">
-        <Link className="hover:text-white" href="/signin">
+        <Link className="hover:text-white" href={success && next ? `/signin?created=1&next=${encodeURIComponent(next)}` : "/signin"}>
           Go to sign in
         </Link>
       </div>

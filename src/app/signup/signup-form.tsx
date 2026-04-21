@@ -10,7 +10,7 @@ const initialState: SignUpState = {
   ok: false,
 };
 
-export function SignUpForm() {
+export function SignUpForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(signUpAction, initialState);
 
@@ -19,6 +19,8 @@ export function SignUpForm() {
       router.replace(state.redirectTo);
     }
   }, [router, state.ok, state.redirectTo]);
+
+  const backHref = callbackUrl ? `/signin?next=${encodeURIComponent(callbackUrl)}` : "/signin";
 
   return (
     <div className="space-y-4">
@@ -40,6 +42,9 @@ export function SignUpForm() {
       ) : null}
 
       <form action={formAction} className="space-y-3">
+        {callbackUrl && (
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
+        )}
         <input
           name="email"
           type="email"
@@ -77,7 +82,7 @@ export function SignUpForm() {
       </form>
 
       <div className="text-xs text-zinc-400">
-        <Link className="hover:text-white" href="/signin">
+        <Link className="hover:text-white" href={backHref}>
           Back to sign in
         </Link>
       </div>

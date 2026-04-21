@@ -33,6 +33,9 @@ export async function signUpAction(
     confirmPassword: formData.get("confirmPassword"),
   });
 
+  const rawCallbackUrl = formData.get("callbackUrl");
+  const callbackUrl = typeof rawCallbackUrl === "string" && rawCallbackUrl ? rawCallbackUrl : null;
+
   if (!parsed.success) {
     return {
       ok: false,
@@ -53,7 +56,7 @@ export async function signUpAction(
     });
 
     try {
-      await sendVerificationEmail(user.email, user.verificationToken!);
+      await sendVerificationEmail(user.email, user.verificationToken!, callbackUrl ?? undefined);
     } catch (emailError) {
       console.error("[signup] Failed to send verification email:", emailError);
     }
@@ -61,7 +64,9 @@ export async function signUpAction(
     return {
       ok: true,
       message: "Account created. Check your email to verify your address.",
-      redirectTo: "/signin?created=1",
+      redirectTo: callbackUrl
+        ? `/signin?created=1&next=${encodeURIComponent(callbackUrl)}`
+        : "/signin?created=1",
     };
   } catch {
     return { ok: false, message: "Could not create account." };

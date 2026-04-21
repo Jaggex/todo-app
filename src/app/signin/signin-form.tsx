@@ -2,21 +2,18 @@
 
 import { useState, useTransition, useActionState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { resendVerificationAction, type ResendState } from "./actions";
 
 const resendInitial: ResendState = { ok: false };
 
-export function SignInForm() {
-  const searchParams = useSearchParams();
+export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: string; accountCreated: boolean }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const accountCreated = searchParams.get("created") === "1";
 
   const [resendState, resendAction, isResending] = useActionState(
     resendVerificationAction,
@@ -45,7 +42,7 @@ export function SignInForm() {
         return;
       }
 
-      window.location.href = "/";
+      window.location.href = callbackUrl;
     });
   }
 
@@ -126,7 +123,7 @@ export function SignInForm() {
       </form>
 
       <div className="flex items-center justify-between text-xs text-zinc-400">
-        <Link className="hover:text-white" href="/signup">
+        <Link className="hover:text-white" href={`/signup${callbackUrl !== "/" ? `?next=${encodeURIComponent(callbackUrl)}` : ""}`}>
           Create account
         </Link>
         <Link className="hover:text-white" href="/forgot-password">
