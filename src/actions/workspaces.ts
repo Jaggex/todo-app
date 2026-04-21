@@ -10,12 +10,14 @@ import {
   addWorkspaceMember,
   createWorkspace,
   createWorkspaceInvite,
+  deleteWorkspace,
   deleteWorkspaceInvite,
   getActiveInvitesForWorkspace,
   getInviteByToken,
   getWorkspaceMembership,
   markInviteUsed,
   removeWorkspaceMember,
+  renameWorkspace,
 } from "@/lib/workspaces";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
 
@@ -217,6 +219,66 @@ export async function removeMemberAction(
 
 // ---------------------------------------------------------------------------
 // Leave workspace
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Rename workspace (owner only)
+// ---------------------------------------------------------------------------
+
+export async function renameWorkspaceAction(
+  workspaceId: string,
+  name: string
+): Promise<WorkspaceActionState> {
+  const session = await requireSession();
+  const userId = requireUserId(session);
+
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 80) {
+    return { ok: false, message: "Name must be between 1 and 80 characters." };
+  }
+
+  const membership = await getWorkspaceMembership(workspaceId, userId);
+  if (!membership || membership.role !== "owner") {
+    return { ok: false, message: "Only workspace owners can rename the workspace." };
+  }
+
+  try {
+    await renameWorkspace(workspaceId, trimmed);
+    revalidatePath(`/workspaces/${workspaceId}`);
+    revalidatePath("/workspaces");
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "Could not rename workspace." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Delete workspace (owner only)
+// ---------------------------------------------------------------------------
+
+export async function deleteWorkspaceAction(
+  workspaceId: string
+): Promise<WorkspaceActionState> {
+  const session = await requireSession();
+  const userId = requireUserId(session);
+
+  const membership = await getWorkspaceMembership(workspaceId, userId);
+  if (!membership || membership.role !== "owner") {
+    return { ok: false, message: "Only workspace owners can delete the workspace." };
+  }
+
+  try {
+    await deleteWorkspace(workspaceId);
+    revalidatePath("/workspaces");
+    revalidatePath("/");
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "Could not delete workspace." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Leave workspace (member only)
 // ---------------------------------------------------------------------------
 
 export async function leaveWorkspaceAction(workspaceId: string): Promise<WorkspaceActionState> {

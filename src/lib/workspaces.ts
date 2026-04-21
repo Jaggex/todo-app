@@ -294,3 +294,26 @@ export async function deleteWorkspaceInvite(inviteId: string): Promise<void> {
   const collection = await getInvitesCollection();
   await collection.deleteOne({ _id: new ObjectId(inviteId) });
 }
+
+export async function renameWorkspace(workspaceId: string, name: string): Promise<void> {
+  await ensureWorkspacesReady();
+  const collection = await getWorkspacesCollection();
+  await collection.updateOne(
+    { _id: new ObjectId(workspaceId) },
+    { $set: { name: name.trim() } }
+  );
+}
+
+export async function deleteWorkspace(workspaceId: string): Promise<void> {
+  await ensureWorkspacesReady();
+  const [workspaces, members, invites] = await Promise.all([
+    getWorkspacesCollection(),
+    getMembersCollection(),
+    getInvitesCollection(),
+  ]);
+  await Promise.all([
+    workspaces.deleteOne({ _id: new ObjectId(workspaceId) }),
+    members.deleteMany({ workspaceId }),
+    invites.deleteMany({ workspaceId }),
+  ]);
+}

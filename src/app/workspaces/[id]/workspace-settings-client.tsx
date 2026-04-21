@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { sendInviteAction, revokeInviteAction, removeMemberAction, leaveWorkspaceAction } from "@/actions/workspaces";
+import { sendInviteAction, revokeInviteAction, removeMemberAction, leaveWorkspaceAction, renameWorkspaceAction, deleteWorkspaceAction } from "@/actions/workspaces";
 import type { WorkspaceMember, WorkspaceInvite } from "@/lib/workspaces";
 import { useRouter } from "next/navigation";
 
@@ -242,6 +242,91 @@ export function MemberList({
         ))}
       </div>
       {error ? <p className="text-xs text-red-400">{error}</p> : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Danger zone (rename + delete) — owner only
+// ---------------------------------------------------------------------------
+
+export function WorkspaceDangerZone({
+  workspaceId,
+  workspaceName,
+}: {
+  workspaceId: string;
+  workspaceName: string;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState(workspaceName);
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [renameSuccess, setRenameSuccess] = useState(false);
+  const router = useRouter();
+
+  function handleRename(e: React.FormEvent) {
+    e.preventDefault();
+    setRenameError(null);
+    setRenameSuccess(false);
+    startTransition(async () => {
+      const result = await renameWorkspaceAction(workspaceId, name);
+      if (result.ok) {
+        setRenameSuccess(true);
+        router.refresh();
+      } else {
+        setRenameError(result.message ?? "Could not rename workspace.");
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!window.confirm(`Delete "${workspaceName}"? This is permanent and cannot be undone.`)) return;
+    startTransition(async () => {
+      const result = await deleteWorkspaceAction(workspaceId);
+      if (result.ok) {
+        router.push("/workspaces");
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-zinc-300">Rename workspace</h2>
+        <form onSubmit={handleRename} className="flex items-center gap-2">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => { setName(e.target.value); setRenameSuccess(false); }}
+            maxLength={80}
+            disabled={isPending}
+            className="flex-1 rounded-md bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={isPending || !name.trim() || name.trim() === workspaceName}
+            className="rounded-md bg-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-neutral-100 hover:text-black disabled:opacity-60"
+          >
+            {isPending ? "Saving…" : "Save"}
+          </button>
+        </form>
+        {renameError && <p className="text-xs text-red-400">{renameError}</p>}
+        {renameSuccess && <p className="text-xs text-green-400">Workspace renamed.</p>}
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-red-400">Delete workspace</h2>
+        <p className="text-xs text-zinc-500">
+          Permanently deletes the workspace, all members, and all pending invites. This cannot be undone.
+        </p>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isPending}
+          className="rounded-md bg-red-900 px-3 py-2 text-sm text-red-200 hover:bg-red-700 disabled:opacity-60"
+        >
+          Delete workspace
+        </button>
+      </div>
     </div>
   );
 }
