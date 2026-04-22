@@ -90,6 +90,7 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
 
   const filter: Record<string, unknown> = {
     ownerId: normalizedOwnerId,
+    $or: [{ scope: "personal" }, { scope: { $exists: false } }],
     completed: false,
   };
 
@@ -113,14 +114,52 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
 
 export const COMPLETED_TASKS_PAGE_SIZE = 25;
 
-export async function getSharedPendingTasks(workspaceIds: string[]): Promise<Task[]> {
+export async function getSharedPendingTasks(workspaceIds: string[], search?: string): Promise<Task[]> {
   if (!workspaceIds.length) return [];
 
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
 
+  const filter: Record<string, unknown> = {
+    scope: "shared",
+    workspaceId: { $in: workspaceIds },
+    completed: false,
+  };
+
+  if (search && search.trim()) {
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = { $regex: escaped, $options: "i" };
+    filter.$or = [{ title: regex }, { message: regex }, { tags: regex }];
+  }
+
   const tasks = await collection
-    .find({ scope: "shared", workspaceId: { $in: workspaceIds }, completed: false })
+    .find(filter)
+    .sort({ _id: -1 })
+    .toArray();
+
+  return tasks.map(toTask);
+}
+
+export async function getSharedCompletedTasks(workspaceIds: string[], search?: string): Promise<Task[]> {
+  if (!workspaceIds.length) return [];
+
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+
+  const filter: Record<string, unknown> = {
+    scope: "shared",
+    workspaceId: { $in: workspaceIds },
+    completed: true,
+  };
+
+  if (search && search.trim()) {
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = { $regex: escaped, $options: "i" };
+    filter.$or = [{ title: regex }, { message: regex }, { tags: regex }];
+  }
+
+  const tasks = await collection
+    .find(filter)
     .sort({ _id: -1 })
     .toArray();
 
@@ -141,6 +180,7 @@ export async function getCompletedTasks(
 
   const filter: Record<string, unknown> = {
     ownerId: normalizedOwnerId,
+    $or: [{ scope: "personal" }, { scope: { $exists: false } }],
     completed: true,
   };
 

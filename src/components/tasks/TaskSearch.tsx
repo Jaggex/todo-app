@@ -5,9 +5,10 @@ import { useEffect, useRef, useState, useTransition } from "react";
 
 type TaskSearchProps = {
   basePath: string;
+  className?: string;
 };
 
-export function TaskSearch({ basePath }: TaskSearchProps) {
+export function TaskSearch({ basePath, className }: TaskSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentQuery = searchParams.get("q") ?? "";
@@ -35,13 +36,18 @@ export function TaskSearch({ basePath }: TaskSearchProps) {
   }, [value, basePath, router]);
 
   return (
-    <div className="relative">
+    <div className={`relative ${className ?? ""}`}>
+      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search tasks…"
-        className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm text-white placeholder-zinc-500"
+        className="w-full rounded-md bg-zinc-800 pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-300"
       />
       {(value || isPending) ? (
         <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
