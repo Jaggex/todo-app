@@ -42,7 +42,7 @@ export default async function CompletedPage({
   ]);
 
   const workspaceIds = workspaces.map((ws) => ws.id);
-  const sharedCompleted = await getSharedCompletedTasks(workspaceIds, searchQuery);
+  const sharedCompleted = await getSharedCompletedTasks(workspaceIds, searchQuery, tagFilters);
 
   // Group shared completed tasks by workspaceId
   const sharedByWorkspace = new Map<string, typeof sharedCompleted>();
@@ -53,6 +53,14 @@ export default async function CompletedPage({
     }
     sharedByWorkspace.get(task.workspaceId)!.push(task);
   }
+
+  // Merge personal tags with any unique tag names from shared tasks
+  const personalTagNames = new Set(tags.map((t) => t.name));
+  const sharedTagNames = new Set(sharedCompleted.flatMap((t) => t.tags));
+  const extraTags = [...sharedTagNames]
+    .filter((name) => !personalTagNames.has(name))
+    .map((name) => ({ id: name, name, ownerId: "", createdAt: new Date(0) }));
+  const allTags = [...tags, ...extraTags];
 
   const paginationParams: Record<string, string> = {};
   if (searchQuery) paginationParams.q = searchQuery;
@@ -66,9 +74,10 @@ export default async function CompletedPage({
         <TaskSearch basePath="/completed" className="w-64" />
       </div>
 
+      <TagFilter tags={allTags} basePath="/completed" />
+
       <TaskWindow title="Personal tasks">
       <div className="space-y-3">
-        <TagFilter tags={tags} basePath="/completed" />
         {tasks.length === 0 ? (
           <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
             {searchQuery ? "No tasks match your search." : "No completed tasks."}

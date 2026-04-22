@@ -42,7 +42,7 @@ export default async function Home({
   ]);
 
   const workspaceIds = workspaces.map((ws) => ws.id);
-  const sharedTasks = await getSharedPendingTasks(workspaceIds, searchQuery);
+  const sharedTasks = await getSharedPendingTasks(workspaceIds, searchQuery, tagFilters);
 
   // Group shared tasks by workspaceId
   const sharedByWorkspace = new Map<string, typeof sharedTasks>();
@@ -53,6 +53,14 @@ export default async function Home({
     }
     sharedByWorkspace.get(task.workspaceId)!.push(task);
   }
+
+  // Merge personal tags with any unique tag names from shared tasks
+  const personalTagNames = new Set(tags.map((t) => t.name));
+  const sharedTagNames = new Set(sharedTasks.flatMap((t) => t.tags));
+  const extraTags = [...sharedTagNames]
+    .filter((name) => !personalTagNames.has(name))
+    .map((name) => ({ id: name, name, ownerId: "", createdAt: new Date(0) }));
+  const allTags = [...tags, ...extraTags];
 
   return (
     <div className="flex flex-col gap-3">
@@ -68,6 +76,8 @@ export default async function Home({
         <TaskSearch basePath="/" className="w-64" />
       </div>
 
+      <TagFilter tags={allTags} basePath="/" />
+
       {isNewOpen ? (
         <div className="mb-5">
           <TaskCreateWindow tags={tags} workspaces={workspaces} />
@@ -76,7 +86,6 @@ export default async function Home({
 
       <TaskWindow title="Personal Tasks">
           <div className="space-y-3">
-            <TagFilter tags={tags} basePath="/" />
             {tasks.length === 0 ? (
               <div className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
                 {searchQuery ? "No tasks match your search." : "No pending tasks."}

@@ -114,7 +114,7 @@ export async function getPendingTasks(ownerId: string, search?: string, tags?: s
 
 export const COMPLETED_TASKS_PAGE_SIZE = 25;
 
-export async function getSharedPendingTasks(workspaceIds: string[], search?: string): Promise<Task[]> {
+export async function getSharedPendingTasks(workspaceIds: string[], search?: string, tags?: string[]): Promise<Task[]> {
   if (!workspaceIds.length) return [];
 
   await ensureMongoTasksReady();
@@ -125,6 +125,10 @@ export async function getSharedPendingTasks(workspaceIds: string[], search?: str
     workspaceId: { $in: workspaceIds },
     completed: false,
   };
+
+  if (tags && tags.length > 0) {
+    filter.tags = { $all: tags };
+  }
 
   if (search && search.trim()) {
     const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -140,7 +144,7 @@ export async function getSharedPendingTasks(workspaceIds: string[], search?: str
   return tasks.map(toTask);
 }
 
-export async function getSharedCompletedTasks(workspaceIds: string[], search?: string): Promise<Task[]> {
+export async function getSharedCompletedTasks(workspaceIds: string[], search?: string, tags?: string[]): Promise<Task[]> {
   if (!workspaceIds.length) return [];
 
   await ensureMongoTasksReady();
@@ -151,6 +155,10 @@ export async function getSharedCompletedTasks(workspaceIds: string[], search?: s
     workspaceId: { $in: workspaceIds },
     completed: true,
   };
+
+  if (tags && tags.length > 0) {
+    filter.tags = { $all: tags };
+  }
 
   if (search && search.trim()) {
     const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
