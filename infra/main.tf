@@ -157,10 +157,7 @@ resource "azurerm_container_app" "app" {
   }
 }
 
-# ── DNS Zone ──────────────────────────────────────────────────────────────────
-# After apply, copy the name_servers output to your registrar's nameserver settings.
-
-resource "azurerm_dns_zone" "dns" {
-  name                = "worktasks.fi"
-  resource_group_name = azurerm_resource_group.rg.name
-}
+# DNS is managed by Cloudflare — no Azure DNS Zone needed.
+# After apply, add a CNAME record in Cloudflare:
+#   Name: @  (or www)
+#   Target: <container_app_url from outputs>

@@ -8,7 +8,7 @@ output "container_app_url" {
   value       = "https://${azurerm_container_app.app.ingress[0].fqdn}"
 }
 
-output "dns_nameservers" {
-  description = "Azure DNS nameservers — paste these into your registrar's nameserver settings for worktasks.fi"
-  value       = azurerm_dns_zone.dns.name_servers
+output "cloudflare_cname_target" {
+  description = "Add a CNAME record in Cloudflare pointing worktasks.net → this value"
+  value       = azurerm_container_app.app.ingress[0].fqdn
 }

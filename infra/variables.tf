@@ -31,7 +31,7 @@ variable "nextauth_secret" {
 variable "nextauth_url" {
   description = "Public URL of the app (used by NextAuth for redirects)"
   type        = string
-  default     = "https://worktasks.fi"
+  default     = "https://worktasks.net"
 }
 
 variable "mongodb_uri" {
