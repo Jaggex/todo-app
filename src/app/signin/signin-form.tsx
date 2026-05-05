@@ -51,7 +51,7 @@ export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: strin
       <div className="space-y-1">
         <h1 className="text-xl font-semibold text-white">Sign in</h1>
         <p className="text-sm text-zinc-300">
-          Sign in with an account stored in MongoDB.
+          Sign in or create account
         </p>
       </div>
 
