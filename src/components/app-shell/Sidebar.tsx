@@ -13,7 +13,7 @@ export async function Sidebar() {
   const session = await getServerSession(authOptions);
 
   return (
-    <aside className="flex flex-col border-r border-dashed border-gray-200 bg-zinc-900 p-4">
+    <aside className="flex flex-col flex-1 bg-zinc-900 p-4 h-full">
       {session?.user ? (
         <>
           <nav className="flex-1 space-y-1">

@@ -71,7 +71,7 @@ export default async function CompletedPage({
       <h2 className="text-2xl font-semibold text-white text-center">Completed tasks</h2>
 
       <div className="flex items-center gap-3">
-        <TaskSearch basePath="/completed" className="w-64" />
+        <TaskSearch basePath="/completed" className="w-full lg:w-64" />
       </div>
 
       <TagFilter tags={allTags} basePath="/completed" />

@@ -73,7 +73,7 @@ export default async function Home({
         >
           {isNewOpen ? "Close" : "New task"}
         </Link>
-        <TaskSearch basePath="/" className="w-64" />
+        <TaskSearch basePath="/" className="w-full lg:w-64" />
       </div>
 
       <TagFilter tags={allTags} basePath="/" />
