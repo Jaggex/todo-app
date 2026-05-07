@@ -15,10 +15,11 @@ function emailLayout(title: string, body: string): string {
         <table width="100%" style="max-width:480px;background:#27272a;border-radius:8px;padding:40px 36px;">
           <tr>
             <td>
+              <p style="margin:0 0 28px;font-size:28px;font-weight:700;color:#ffffff;text-align:center;letter-spacing:-0.3px;">Worktasks</p>
               <p style="margin:0 0 24px;font-size:20px;font-weight:600;color:#ffffff;">${title}</p>
               ${body}
-              <p style="margin:32px 0 0;font-size:12px;color:#71717a;">
-                Worktasks &mdash; <a href="https://worktasks.net" style="color:#71717a;">worktasks.net</a>
+              <p style="margin:32px 0 0;font-size:12px;color:#a1a1aa;">
+                Worktasks &mdash; <a href="https://worktasks.net" style="color:#a1a1aa;">worktasks.net</a>
               </p>
             </td>
           </tr>
@@ -39,7 +40,7 @@ function emailText(text: string): string {
 }
 
 function emailSmall(text: string): string {
-  return `<p style="margin:16px 0 0;font-size:12px;color:#71717a;line-height:1.5;">${text}</p>`;
+  return `<p style="margin:16px 0 0;font-size:12px;color:#a1a1aa;line-height:1.5;">${text}</p>`;
 }
 
 const isDev = process.env.NODE_ENV === "development";
@@ -98,7 +99,7 @@ export async function sendVerificationEmail(
       "Verify your email address",
       emailText("Thanks for signing up! Click the button below to confirm your email address and activate your account.") +
       emailButton("Verify email address", verifyUrl) +
-      emailSmall(`Or copy this link into your browser:<br/><a href="${verifyUrl}" style="color:#71717a;word-break:break-all;">${verifyUrl}</a>`) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${verifyUrl}" style="color:#a1a1aa;word-break:break-all;">${verifyUrl}</a>`) +
       emailSmall("If you did not create a Worktasks account, you can safely ignore this email.")
     ),
   });
@@ -120,7 +121,7 @@ export async function sendPasswordResetEmail(
       "Reset your password",
       emailText("We received a request to reset your Worktasks password. Click the button below to choose a new one.") +
       emailButton("Reset password", resetUrl) +
-      emailSmall(`Or copy this link into your browser:<br/><a href="${resetUrl}" style="color:#71717a;word-break:break-all;">${resetUrl}</a>`) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${resetUrl}" style="color:#a1a1aa;word-break:break-all;">${resetUrl}</a>`) +
       emailSmall("This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.")
     ),
   });
@@ -140,7 +141,7 @@ export async function sendWorkspaceInviteEmail(
       `You've been invited to join a workspace`,
       emailText(`You have been invited to join <strong style="color:#ffffff;">${workspaceName}</strong> on Worktasks.`) +
       emailButton("Accept invitation", inviteUrl) +
-      emailSmall(`Or copy this link into your browser:<br/><a href="${inviteUrl}" style="color:#71717a;word-break:break-all;">${inviteUrl}</a>`) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${inviteUrl}" style="color:#a1a1aa;word-break:break-all;">${inviteUrl}</a>`) +
       emailSmall("This invitation expires in 7 days. If you were not expecting this invite, you can safely ignore this email.")
     ),
   });
