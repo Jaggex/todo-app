@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 
 import { authOptions } from "@/lib/auth";
-import { UserMenu } from "@/components/app-shell/UserMenu";
 
 export async function Topbar() {
   const session = await getServerSession(authOptions);
@@ -15,12 +14,10 @@ export async function Topbar() {
 
       <div className="flex items-center px-6" />
 
-      <div className="flex items-center justify-end border-l border-dashed border-gray-200 px-4">
-        {session?.user?.email ? (
-          <UserMenu email={session.user.email} role={session.user.role} />
-        ) : (
-          <Link className="text-xs text-white" href="/signin">
-            Signed out
+      <div className="flex items-center justify-center border-l border-dashed border-gray-200 px-4">
+        {session?.user?.email ? null : (
+          <Link className="text-xs text-white hover:text-zinc-300" href="/signin">
+            Log in
           </Link>
         )}
       </div>

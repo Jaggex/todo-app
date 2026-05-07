@@ -25,10 +25,7 @@ export function SignUpForm({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Create account</h1>
-        <p className="text-sm text-zinc-300">
-          Create a Mongo-backed user account for this workspace.
-        </p>
+        <h1 className="text-xl font-semibold text-white">Create Worktasks account</h1>
       </div>
 
       {state.message ? (

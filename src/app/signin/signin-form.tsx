@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useActionState } from "react";
+import { useState, useTransition, useActionState, useEffect } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 
@@ -19,6 +19,15 @@ export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: strin
     resendVerificationAction,
     resendInitial
   );
+
+  const [showEmailHint, setShowEmailHint] = useState(false);
+  const [hintEmail, setHintEmail] = useState("");
+
+  useEffect(() => {
+    if (!accountCreated) return;
+    const timer = setTimeout(() => setShowEmailHint(true), 20000);
+    return () => clearTimeout(timer);
+  }, [accountCreated]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +67,29 @@ export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: strin
       {accountCreated ? (
         <div className="rounded-md bg-emerald-950 px-3 py-2 text-sm text-emerald-200">
           Account created. Check your email for a verification link, then sign in.
+          {showEmailHint ? (
+            <>
+              <br /><br />
+              <span className="text-emerald-300">Can&apos;t find it? Check your spam/trash folder.</span>
+              <br /><br />
+              {resendState.message ? (
+                <span className={resendState.ok ? "text-emerald-300" : "text-red-300"}>
+                  {resendState.message}
+                </span>
+              ) : (
+                <form action={(fd) => { fd.set("email", hintEmail || email); resendAction(fd); }}>
+                  <input type="hidden" name="email" value={hintEmail || email} />
+                  <button
+                    type="submit"
+                    className="mt-1 underline underline-offset-2 hover:text-white disabled:opacity-60"
+                    disabled={isResending}
+                  >
+                    {isResending ? "Sending…" : "Resend verification email"}
+                  </button>
+                </form>
+              )}
+            </>
+          ) : null}
         </div>
       ) : null}
 
@@ -96,7 +128,7 @@ export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: strin
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setHintEmail(e.target.value); }}
           type="email"
           placeholder="Email"
           className="w-full rounded-md bg-zinc-800 px-3 py-2 text-sm text-white"
