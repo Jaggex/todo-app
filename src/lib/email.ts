@@ -1,5 +1,47 @@
 import nodemailer from "nodemailer";
 
+function emailLayout(title: string, body: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+</head>
+<body style="margin:0;padding:0;background:#18181b;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" style="max-width:480px;background:#27272a;border-radius:8px;padding:40px 36px;">
+          <tr>
+            <td>
+              <p style="margin:0 0 24px;font-size:20px;font-weight:600;color:#ffffff;">${title}</p>
+              ${body}
+              <p style="margin:32px 0 0;font-size:12px;color:#71717a;">
+                Worktasks &mdash; <a href="https://worktasks.net" style="color:#71717a;">worktasks.net</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function emailButton(label: string, url: string): string {
+  return `<a href="${url}" style="display:inline-block;margin:20px 0;padding:12px 24px;background:#ffffff;color:#18181b;font-size:14px;font-weight:600;text-decoration:none;border-radius:6px;">${label}</a>`;
+}
+
+function emailText(text: string): string {
+  return `<p style="margin:0 0 12px;font-size:14px;color:#d4d4d8;line-height:1.6;">${text}</p>`;
+}
+
+function emailSmall(text: string): string {
+  return `<p style="margin:16px 0 0;font-size:12px;color:#71717a;line-height:1.5;">${text}</p>`;
+}
+
 const isDev = process.env.NODE_ENV === "development";
 
 const smtpHost = isDev ? process.env.DEV_SMTP_HOST : process.env.SMTP_HOST;
@@ -50,13 +92,15 @@ export async function sendVerificationEmail(
   await getTransporter().sendMail({
     from: emailFrom,
     to,
-    subject: "Verify your email",
-    text: `Click this link to verify your email:\n\n${verifyUrl}\n\nIf you did not create an account, ignore this email.`,
-    html: `
-      <p>Click the link below to verify your email:</p>
-      <p><a href="${verifyUrl}">Verify email</a></p>
-      <p>If you did not create an account, ignore this email.</p>
-    `,
+    subject: "Verify your email – Worktasks",
+    text: `Verify your email address\n\nClick the link below to confirm your account:\n\n${verifyUrl}\n\nIf you did not create a Worktasks account, you can ignore this email.`,
+    html: emailLayout(
+      "Verify your email address",
+      emailText("Thanks for signing up! Click the button below to confirm your email address and activate your account.") +
+      emailButton("Verify email address", verifyUrl) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${verifyUrl}" style="color:#71717a;word-break:break-all;">${verifyUrl}</a>`) +
+      emailSmall("If you did not create a Worktasks account, you can safely ignore this email.")
+    ),
   });
 }
 
@@ -70,13 +114,15 @@ export async function sendPasswordResetEmail(
   await getTransporter().sendMail({
     from: emailFrom,
     to,
-    subject: "Reset your password",
-    text: `Click this link to reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request a password reset, ignore this email.`,
-    html: `
-      <p>Click the link below to reset your password:</p>
-      <p><a href="${resetUrl}">Reset password</a></p>
-      <p>This link expires in 1 hour. If you did not request a password reset, ignore this email.</p>
-    `,
+    subject: "Reset your password – Worktasks",
+    text: `Reset your password\n\nClick the link below to choose a new password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request a password reset, ignore this email.`,
+    html: emailLayout(
+      "Reset your password",
+      emailText("We received a request to reset your Worktasks password. Click the button below to choose a new one.") +
+      emailButton("Reset password", resetUrl) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${resetUrl}" style="color:#71717a;word-break:break-all;">${resetUrl}</a>`) +
+      emailSmall("This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.")
+    ),
   });
 }
 
@@ -88,12 +134,14 @@ export async function sendWorkspaceInviteEmail(
   await getTransporter().sendMail({
     from: emailFrom,
     to,
-    subject: `You've been invited to "${workspaceName}" on Worktasks`,
-    text: `You have been invited to join the workspace "${workspaceName}" on Worktasks.\n\nClick the link below to accept the invitation:\n\n${inviteUrl}\n\nThis invitation expires in 7 days. If you were not expecting this, you can ignore this email.`,
-    html: `
-      <p>You have been invited to join the workspace <strong>${workspaceName}</strong> on Worktasks.</p>
-      <p><a href="${inviteUrl}">Accept invitation</a></p>
-      <p>This invitation expires in 7 days. If you were not expecting this, you can ignore this email.</p>
-    `,
+    subject: `You've been invited to join "${workspaceName}" on Worktasks`,
+    text: `You've been invited to join "${workspaceName}" on Worktasks.\n\nClick the link below to accept the invitation:\n\n${inviteUrl}\n\nThis invitation expires in 7 days. If you were not expecting this, you can ignore this email.`,
+    html: emailLayout(
+      `You've been invited to join a workspace`,
+      emailText(`You have been invited to join <strong style="color:#ffffff;">${workspaceName}</strong> on Worktasks.`) +
+      emailButton("Accept invitation", inviteUrl) +
+      emailSmall(`Or copy this link into your browser:<br/><a href="${inviteUrl}" style="color:#71717a;word-break:break-all;">${inviteUrl}</a>`) +
+      emailSmall("This invitation expires in 7 days. If you were not expecting this invite, you can safely ignore this email.")
+    ),
   });
 }
