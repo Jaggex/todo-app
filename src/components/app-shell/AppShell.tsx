@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Sidebar />
           </div>
         </div>
-        <main className="min-w-0 p-4 lg:p-6">{children}</main>
+        <main className="min-w-0 p-4 lg:p-6 flex flex-col">{children}</main>
         <aside className="hidden sm:block border-l border-dashed border-gray-200 bg-zinc-900" />
       </div>
       <footer className="border-t border-dashed border-gray-200 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
