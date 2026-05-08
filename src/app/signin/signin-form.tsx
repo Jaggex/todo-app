@@ -58,10 +58,7 @@ export function SignInForm({ callbackUrl, accountCreated }: { callbackUrl: strin
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Sign in</h1>
-        <p className="text-sm text-zinc-300">
-          Sign in or create account
-        </p>
+        <h1 className="text-xl text-center mb-8 font-semibold text-white">Sign in or create account</h1>
       </div>
 
       {accountCreated ? (
