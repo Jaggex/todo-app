@@ -8,7 +8,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh flex flex-col">
       <Topbar />
       <div className="flex-1 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
-        <div className="hidden sm:flex sm:flex-col sm:border-r sm:border-dashed sm:border-gray-200 sm:bg-zinc-900">
+        <div className="hidden sm:flex sm:flex-col sm:border-r sm:border-dashed sm:border-gray-200 sm:bg-zinc-900 lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]">
           <div className="hidden lg:flex lg:flex-col lg:flex-1">
             <Sidebar />
           </div>
