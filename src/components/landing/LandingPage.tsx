@@ -34,16 +34,16 @@ export function LandingPage() {
 
       {/* Features */}
       <section className="flex justify-center">
-        <div className="rounded-lg border border-dashed border-gray-200 bg-zinc-800/40 p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-xl w-full">
+        <div className="rounded-lg border border-dashed border-gray-200 bg-zinc-800/40 p-6 grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-xl w-full">
           <div className="flex flex-col gap-2 text-center">
-            <h3 className="text-sm font-semibold text-white">Personal tasks</h3>
+            <h3 className="text-xl font-semibold text-white">Personal tasks</h3>
             <p className="text-sm text-zinc-300 leading-relaxed">
               Keep a running list of everything on your plate. Add, reorder, and mark tasks done to
               stay focused.
             </p>
           </div>
           <div className="flex flex-col gap-2 text-center">
-            <h3 className="text-sm font-semibold text-white">Team workspaces</h3>
+            <h3 className="text-xl font-semibold text-white">Team workspaces</h3>
             <p className="text-sm text-zinc-300 leading-relaxed">
               Create shared workspaces and invite teammates by email. Collaborate without the
               clutter.
