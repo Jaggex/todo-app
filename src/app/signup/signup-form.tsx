@@ -25,7 +25,7 @@ export function SignUpForm({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">Create Worktasks account</h1>
+        <h1 className="text-xl font-semibold text-center mb-8 text-white">Create Worktasks account</h1>
       </div>
 
       {state.message ? (
