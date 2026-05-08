@@ -16,6 +16,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 p-4 lg:p-6">{children}</main>
         <aside className="hidden sm:block border-l border-dashed border-gray-200 bg-zinc-900" />
       </div>
+      <footer className="border-t border-dashed border-gray-200 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
+        <div className="hidden sm:block border-r border-dashed border-gray-200 bg-zinc-900" />
+        <div className="py-3 text-center">
+          <p className="text-xs text-zinc-500">Created by Janne@bronex.fi</p>
+        </div>
+        <div className="hidden sm:block border-l border-dashed border-gray-200 bg-zinc-900" />
+      </footer>
     </div>
   );
 }

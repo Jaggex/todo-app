@@ -92,45 +92,56 @@ export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
         )}
 
         {workspaces.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400">Scope:</span>
-            <button
-              type="button"
-              onClick={() => setScope("personal")}
-              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
-                scope === "personal"
-                  ? "bg-zinc-200 text-zinc-900"
-                  : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-              }`}
-            >
-              Personal
-            </button>
-            <button
-              type="button"
-              onClick={() => setScope("shared")}
-              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
-                scope === "shared"
-                  ? "bg-zinc-200 text-zinc-900"
-                  : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-              }`}
-            >
-              Shared
-            </button>
-            {scope === "shared" && workspaces.length > 1 && (
-              <select
-                value={selectedWorkspaceId}
-                onChange={(e) => setSelectedWorkspaceId(e.target.value)}
-                className="rounded-md bg-zinc-700 px-2 py-1 text-xs text-zinc-300"
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2 max-w-sm">
+              <button
+                type="button"
+                onClick={() => setScope("personal")}
+                className={`flex flex-col items-center justify-start rounded-md border border-dashed px-3 py-2.5 text-center transition-colors ${
+                  scope === "personal"
+                    ? "border-white bg-zinc-700 text-white"
+                    : "border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white"
+                }`}
               >
-                {workspaces.map((ws) => (
-                  <option key={ws.id} value={ws.id}>
-                    {ws.name}
-                  </option>
-                ))}
-              </select>
+                <h4 className="text-sm font-semibold">Personal</h4>
+                <div className="text-xs opacity-70 mt-0.5">Only visible to you</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScope("shared")}
+                className={`flex flex-col items-center justify-start rounded-md border border-dashed px-3 py-2.5 text-center transition-colors ${
+                  scope === "shared"
+                    ? "border-white bg-zinc-700 text-white"
+                    : "border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white"
+                }`}
+              >
+                <h4 className="text-sm font-semibold">Shared</h4>
+                <div className="text-xs opacity-70 mt-0.5">Visible to workspace members</div>
+              </button>
+            </div>
+            {scope === "shared" && workspaces.length > 1 && (
+              <div className="flex flex-col gap-1 max-w-sm">
+                <label className="block text-xs text-zinc-400">Select workspace</label>
+                <select
+                  value={selectedWorkspaceId}
+                  onChange={(e) => setSelectedWorkspaceId(e.target.value)}
+                  className="w-full rounded-md bg-zinc-700 px-3 py-2 text-xs text-zinc-300"
+                >
+                  {workspaces.map((ws) => (
+                    <option key={ws.id} value={ws.id}>
+                      {ws.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
             {scope === "shared" && workspaces.length === 1 && (
-              <span className="text-xs text-zinc-400">→ {workspaces[0].name}</span>
+              <div className="flex flex-col gap-1 max-w-sm">
+                <label className="block text-xs text-zinc-400">Select workspace</label>
+                <div className="rounded-md bg-zinc-700 px-3 py-2 text-xs text-white font-medium">
+                  {workspaces[0].name}
+                </div>
+              </div>
             )}
           </div>
         )}
