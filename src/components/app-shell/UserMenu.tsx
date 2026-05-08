@@ -103,7 +103,6 @@ export function UserMenu({ email, role }: Props) {
 
           <SignOutButton
             className="block w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 transition hover:bg-zinc-100 hover:text-black"
-            callbackUrl="/signin"
           />
         </div>
       </div>
