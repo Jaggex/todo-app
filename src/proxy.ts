@@ -6,7 +6,7 @@ import { getToken } from "next-auth/jwt";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ["/signin", "/signup", "/verify-email", "/forgot-password", "/reset-password"];
+  const publicPaths = ["/", "/signin", "/signup", "/verify-email", "/forgot-password", "/reset-password"];
   if (publicPaths.includes(pathname) || pathname.startsWith("/join/")) {
     return NextResponse.next();
   }

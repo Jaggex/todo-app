@@ -4,15 +4,17 @@ import { signOut } from "next-auth/react";
 
 type Props = {
   className?: string;
-  callbackUrl?: string;
 };
 
-export function SignOutButton({ className, callbackUrl = "/signin" }: Props) {
+export function SignOutButton({ className }: Props) {
   return (
     <button
       type="button"
       className={className}
-      onClick={() => signOut({ callbackUrl })}
+      onClick={async () => {
+        await signOut({ redirect: false });
+        window.location.href = "/";
+      }}
     >
       Sign out
     </button>

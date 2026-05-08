@@ -12,6 +12,7 @@ import { getPendingTasks, getSharedPendingTasks } from "@/lib/tasks";
 import { getTagsByOwner } from "@/lib/tags";
 import { getWorkspacesByUserId } from "@/lib/workspaces";
 import { authOptions } from "@/lib/auth";
+import { LandingPage } from "@/components/landing/LandingPage";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function Home({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
-    redirect("/signin");
+    return <LandingPage />;
   }
   const ownerId = session.user?.id;
   if (!ownerId) {
