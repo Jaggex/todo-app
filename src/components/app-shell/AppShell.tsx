@@ -5,24 +5,20 @@ import { Topbar } from "@/components/app-shell/Topbar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="h-dvh flex flex-col">
       <Topbar />
-      <div className="flex-1 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
-        <div className="hidden sm:flex sm:flex-col sm:border-r sm:border-dashed sm:border-gray-200 sm:bg-zinc-900 lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]">
+      <div className="flex-1 min-h-0 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
+        <div className="hidden sm:flex sm:flex-col sm:border-r sm:border-dashed sm:border-gray-200 sm:bg-zinc-900">
           <div className="hidden lg:flex lg:flex-col lg:flex-1">
             <Sidebar />
           </div>
         </div>
-        <main className="min-w-0 p-4 lg:p-6 flex flex-col">{children}</main>
+        <main className="min-w-0 p-4 lg:p-6 flex flex-col overflow-y-auto">
+          <div className="flex-1">{children}</div>
+          <p className="pt-6 text-center text-xs text-zinc-600">Created by Janne@bronex.fi</p>
+        </main>
         <aside className="hidden sm:block border-l border-dashed border-gray-200 bg-zinc-900" />
       </div>
-      <footer className="border-t border-dashed border-gray-200 sm:grid sm:grid-cols-[5rem_1fr_5rem] lg:grid-cols-[16rem_1fr_16rem]">
-        <div className="hidden sm:block border-r border-dashed border-gray-200 bg-zinc-900" />
-        <div className="py-3 text-center">
-          <p className="text-xs text-zinc-500">Created by Janne@bronex.fi</p>
-        </div>
-        <div className="hidden sm:block border-l border-dashed border-gray-200 bg-zinc-900" />
-      </footer>
     </div>
   );
 }
