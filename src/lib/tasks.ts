@@ -389,6 +389,29 @@ export async function setSharedTaskCompletedById(
   );
 }
 
+export async function updateSharedTaskById(
+  taskId: string,
+  workspaceId: string,
+  update: { title: string; message?: string; dueDate?: Date; tags: string[] }
+) {
+  const trimmedTitle = update.title.trim();
+  if (!trimmedTitle) throw new Error("Title is required");
+
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  await collection.updateOne(
+    { _id: new ObjectId(taskId), scope: "shared", workspaceId },
+    {
+      $set: {
+        title: trimmedTitle,
+        message: update.message?.trim() || undefined,
+        dueDate: update.dueDate ?? undefined,
+        tags: update.tags,
+      },
+    }
+  );
+}
+
 export async function deleteSharedTaskById(taskId: string, workspaceId: string) {
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();

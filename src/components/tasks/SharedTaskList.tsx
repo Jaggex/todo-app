@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 
 import type { Task } from "@/lib/tasks";
-import { setSharedTaskCompleted, deleteSharedTask } from "@/actions/tasks";
+import { setSharedTaskCompleted, deleteSharedTask, updateSharedTask } from "@/actions/tasks";
 import { TaskEntry } from "@/components/tasks/TaskEntry";
 import { TaskEntryActions } from "@/components/tasks/TaskEntryActions";
 import { TaskEditForm } from "@/components/tasks/TaskEditForm";
@@ -57,6 +57,9 @@ export function SharedTaskList({ tasks, workspaceId, allTags }: SharedTaskListPr
               allTags={allTags}
               bgVariant={index % 2 === 0 ? "zinc-700" : "zinc-800"}
               onCancel={() => setEditingTaskId(null)}
+              updateFn={(taskId, title, message, dueDate, tags) =>
+                updateSharedTask(taskId, workspaceId, title, message, dueDate, tags)
+              }
             />
           </div>
         ) : (

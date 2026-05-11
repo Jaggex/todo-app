@@ -15,6 +15,7 @@ type TaskEditFormProps = {
   allTags: Tag[];
   bgVariant: "zinc-700" | "zinc-800";
   onCancel: () => void;
+  updateFn?: (taskId: string, title: string, message: string, dueDate: string, tags: string[]) => Promise<void>;
 };
 
 const tagInitial: TagActionState = { ok: false };
@@ -37,6 +38,7 @@ export function TaskEditForm({
   allTags,
   bgVariant,
   onCancel,
+  updateFn,
 }: TaskEditFormProps) {
   const inputBg = bgVariant === "zinc-700" ? "bg-zinc-800" : "bg-zinc-700";
   const tagUnselectedBg = bgVariant === "zinc-700" ? "bg-zinc-800 hover:bg-zinc-700" : "bg-zinc-700 hover:bg-zinc-600";
@@ -90,7 +92,8 @@ export function TaskEditForm({
     const tags = Array.from(selectedTagNames);
 
     startTransition(async () => {
-      await updateTask(taskId, title, message, dueDate, tags);
+      const fn = updateFn ?? updateTask;
+      await fn(taskId, title, message, dueDate, tags);
       onCancel();
     });
   }
