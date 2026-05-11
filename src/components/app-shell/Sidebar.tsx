@@ -27,7 +27,7 @@ export async function Sidebar() {
               </Link>
             ))}
           </nav>
-          <div className="mt-auto pt-4">
+          <div className="mt-auto">
             <UserMenu email={session.user.email!} role={session.user.role} />
           </div>
         </>
