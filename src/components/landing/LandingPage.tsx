@@ -12,8 +12,8 @@ export function LandingPage() {
             <span>Under control.</span>
           </h1>
           <p className="text-base lg:text-lg text-zinc-300 max-w-sm mx-auto leading-relaxed">
-            Clean task management for individuals and teams. Create tasks, organize workspaces, and
-            get things done together. For free.
+            A free to do application for individuals and teams. Create tasks, organize workspaces, and
+            get things done together.
           </p>
         </div>
         <div className="flex items-center gap-4">
