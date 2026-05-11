@@ -38,7 +38,7 @@ export function UserMenu({ email, role }: Props) {
   }, []);
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -72,10 +72,10 @@ export function UserMenu({ email, role }: Props) {
 
       <div
         className={[
-          "fixed left-4 bottom-16 z-20 w-56 rounded-lg border border-dashed border-gray-200 bg-zinc-900 p-2 shadow-lg transition-all duration-200",
+          "absolute bottom-full left-0 mb-2 z-20 w-56 rounded-lg border border-dashed border-gray-200 bg-zinc-900 p-2 shadow-lg transition-all duration-200",
           isOpen
             ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-[calc(100%+1rem)] opacity-0",
+            : "pointer-events-none translate-y-2 opacity-0",
         ].join(" ")}
       >
         <div className="border-b border-dashed border-gray-200 px-2 pb-2 text-[11px] text-zinc-400">
