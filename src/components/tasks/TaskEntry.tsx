@@ -50,48 +50,52 @@ export function TaskEntry({
 
   return (
     <div
-      className={`flex items-start justify-between gap-3 rounded-md px-3 py-2 ${backgroundClass}`}
+      className={`flex flex-col gap-1 rounded-md px-3 py-2 ${backgroundClass}`}
     >
-      <button
-        type="button"
-        onClick={onToggleExpanded}
-        className="min-w-0 flex-1 text-left"
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-md text-gray-100">{title}</span>
-          {dueDateLabel ? (
-            <span
-              className={`shrink-0 text-xs ${
-                overdue
-                  ? "text-red-400"
-                  : dueToday
-                  ? "text-amber-400"
-                  : "text-zinc-400"
-              }`}
-            >
-              {overdue ? "⚠ " : ""}{dueDateLabel}
-            </span>
-          ) : null}
-        </div>
-        {tags && tags.length > 0 ? (
-          <div className="mt-1 flex flex-wrap gap-1">
-            {tags.map((tag) => (
+      {/* Title row: title + actions on same line */}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          className="min-w-0 flex-1 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-md text-gray-100">{title}</span>
+            {dueDateLabel ? (
               <span
-                key={tag}
-                className="rounded-full bg-zinc-600 px-2 py-0.5 text-[10px] text-zinc-300"
+                className={`shrink-0 text-xs ${
+                  overdue
+                    ? "text-red-400"
+                    : dueToday
+                    ? "text-amber-400"
+                    : "text-zinc-400"
+                }`}
               >
-                {tag}
+                {overdue ? "⚠ " : ""}{dueDateLabel}
               </span>
-            ))}
+            ) : null}
           </div>
-        ) : null}
-        {expanded && message ? (
-          <div className="text-xs text-zinc-100 mt-3 whitespace-pre-wrap">
-            {message}
-          </div>
-        ) : null}
-      </button>
-      {rightSlot ? <div className="shrink-0">{rightSlot}</div> : null}
+        </button>
+        {rightSlot ? <div className="shrink-0">{rightSlot}</div> : null}
+      </div>
+      {/* Tags and message: full width below */}
+      {tags && tags.length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-zinc-600 px-2 py-0.5 text-[10px] text-zinc-300"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {expanded && message ? (
+        <div className="text-xs mt-2 text-zinc-100 whitespace-pre-wrap">
+          {message}
+        </div>
+      ) : null}
     </div>
   );
 }
