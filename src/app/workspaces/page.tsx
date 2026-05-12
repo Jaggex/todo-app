@@ -18,7 +18,7 @@ export default async function WorkspacesPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-8">
-      <h2 className="text-2xl font-semibold text-white text-center">Workspaces</h2>
+      <h2 className="text-3xl my-3 font-semibold text-white text-center">Workspaces</h2>
 
       <p className="text-sm text-zinc-400 text-center">
           Create or manage workspaces to share tasks with your team.

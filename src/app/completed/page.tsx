@@ -68,7 +68,7 @@ export default async function CompletedPage({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-2xl font-semibold text-white text-center">Completed tasks</h2>
+      <h2 className="text-3xl my-3 font-semibold text-white text-center">Completed tasks</h2>
 
       <div className="flex items-center gap-3">
         <TaskSearch basePath="/completed" className="w-full lg:w-64" />

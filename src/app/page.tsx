@@ -65,7 +65,7 @@ export default async function Home({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-3xl font-semibold text-white text-center">Pending tasks</h2>
+      <h2 className="text-3xl my-3 font-semibold text-white text-center">Pending tasks</h2>
 
       <div className="flex items-center gap-3">
         <Link
