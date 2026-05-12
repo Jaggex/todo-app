@@ -99,7 +99,7 @@ export function TaskEditForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 pt-5">
+    <form onSubmit={handleSubmit} className="space-y-2">
       <div className="flex flex-col gap-1">
         <label className="pl-1 text-xs text-zinc-300">Title</label>
         <input
@@ -117,7 +117,7 @@ export function TaskEditForm({
           className={`w-full resize-none rounded-md ${inputBg} px-3 py-2 text-sm text-white`}
           name="message"
           placeholder="Message (optional)"
-          rows={3}
+          rows={10}
           defaultValue={initialMessage ?? ""}
         />
       </div>
@@ -204,7 +204,7 @@ export function TaskEditForm({
         />
       </div>
 
-      <div className="flex items-center gap-2 pb-5 pt-3">
+      <div className="flex items-center gap-2 pt-2">
           <button
             type="submit"
             className={`rounded-md ${inputBg} px-3 py-2 text-sm text-zinc-100 hover:bg-neutral-100 hover:text-black disabled:opacity-60`}
