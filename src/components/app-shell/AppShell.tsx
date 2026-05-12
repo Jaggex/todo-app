@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Sidebar />
           </div>
         </div>
-        <main className="min-w-0 p-4 lg:p-6 flex flex-col overflow-y-auto">
+        <main className="min-w-0 h-full p-4 lg:p-6 flex flex-col overflow-y-auto">
           <div className="flex-1">{children}</div>
           <p className="pt-6 text-center text-xs text-zinc-600">Created by Janne@bronex.fi</p>
         </main>
