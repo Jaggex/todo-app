@@ -42,6 +42,7 @@ export function TaskEditForm({
 }: TaskEditFormProps) {
   const inputBg = bgVariant === "zinc-700" ? "bg-zinc-800" : "bg-zinc-700";
   const tagUnselectedBg = bgVariant === "zinc-700" ? "bg-zinc-800 hover:bg-zinc-700" : "bg-zinc-700 hover:bg-zinc-600";
+  const [localTags, setLocalTags] = useState<Tag[]>(allTags);
   const [selectedTagNames, setSelectedTagNames] = useState<Set<string>>(
     () => new Set(initialTags ?? [])
   );
@@ -55,8 +56,17 @@ export function TaskEditForm({
   const [, startTagTransition] = useTransition();
 
   useEffect(() => {
-    if (tagState.ok && tagInputRef.current) {
-      tagInputRef.current.value = "";
+    if (tagState.ok) {
+      if (tagInputRef.current) tagInputRef.current.value = "";
+      if (tagState.tagName) {
+        const name = tagState.tagName;
+        setLocalTags((prev) =>
+          prev.some((t) => t.name === name)
+            ? prev
+            : [...prev, { id: `__new__${name}`, name, ownerId: "", createdAt: new Date() }]
+        );
+        setSelectedTagNames((prev) => new Set([...prev, name]));
+      }
     }
   }, [tagState]);
 
@@ -80,7 +90,15 @@ export function TaskEditForm({
   async function handleDeleteTag(tagId: string, tagName: string) {
     const ok = window.confirm(`Delete tag "${tagName}"? It won't be removed from existing tasks.`);
     if (!ok) return;
-    await deleteTagAction(tagId);
+    if (!tagId.startsWith("__new__")) {
+      await deleteTagAction(tagId);
+    }
+    setLocalTags((prev) => prev.filter((t) => t.id !== tagId));
+    setSelectedTagNames((prev) => {
+      const next = new Set(prev);
+      next.delete(tagName);
+      return next;
+    });
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -130,7 +148,7 @@ export function TaskEditForm({
         >
           + Tag
         </button>
-        {allTags.map((tag) => {
+        {localTags.map((tag) => {
           const selected = selectedTagNames.has(tag.name);
           return (
             <span key={tag.id} className="group flex items-center gap-0.5">

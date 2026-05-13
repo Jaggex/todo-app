@@ -417,3 +417,11 @@ export async function deleteSharedTaskById(taskId: string, workspaceId: string) 
   const collection = await getTasksCollection();
   await collection.deleteOne({ _id: new ObjectId(taskId), scope: "shared", workspaceId });
 }
+
+export async function deleteSharedTasksByIds(taskIds: string[], workspaceId: string) {
+  if (taskIds.length === 0) return;
+  await ensureMongoTasksReady();
+  const collection = await getTasksCollection();
+  const objectIds = taskIds.map((id) => new ObjectId(id));
+  await collection.deleteMany({ _id: { $in: objectIds }, scope: "shared", workspaceId });
+}

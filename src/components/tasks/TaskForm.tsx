@@ -15,6 +15,7 @@ type TaskFormProps = {
 const tagInitial: TagActionState = { ok: false };
 
 export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
+  const [localTags, setLocalTags] = useState<Tag[]>(tags);
   const [selectedTagNames, setSelectedTagNames] = useState<Set<string>>(
     () => new Set()
   );
@@ -29,8 +30,17 @@ export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
   const [, startTransition] = useTransition();
 
   useEffect(() => {
-    if (tagState.ok && tagInputRef.current) {
-      tagInputRef.current.value = "";
+    if (tagState.ok) {
+      if (tagInputRef.current) tagInputRef.current.value = "";
+      if (tagState.tagName) {
+        const name = tagState.tagName;
+        setLocalTags((prev) =>
+          prev.some((t) => t.name === name)
+            ? prev
+            : [...prev, { id: `__new__${name}`, name, ownerId: "", createdAt: new Date() }]
+        );
+        setSelectedTagNames((prev) => new Set([...prev, name]));
+      }
     }
   }, [tagState]);
 
@@ -61,7 +71,15 @@ export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
   async function handleDeleteTag(tagId: string, tagName: string) {
     const ok = window.confirm(`Delete tag "${tagName}"? It won't be removed from existing tasks.`);
     if (!ok) return;
-    await deleteTagAction(tagId);
+    if (!tagId.startsWith("__new__")) {
+      await deleteTagAction(tagId);
+    }
+    setLocalTags((prev) => prev.filter((t) => t.id !== tagId));
+    setSelectedTagNames((prev) => {
+      const next = new Set(prev);
+      next.delete(tagName);
+      return next;
+    });
   }
 
   return (
@@ -154,7 +172,7 @@ export function TaskForm({ tags, workspaces = [] }: TaskFormProps) {
           >
             + Tag
           </button>
-          {tags.map((tag) => {
+          {localTags.map((tag) => {
             const selected = selectedTagNames.has(tag.name);
             return (
               <span key={tag.id} className="group flex items-center gap-0.5">

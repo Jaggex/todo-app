@@ -14,6 +14,7 @@ import {
   setTaskCompletedById,
   setSharedTaskCompletedById,
   deleteSharedTaskById,
+  deleteSharedTasksByIds,
   updateTaskById,
   updateSharedTaskById,
   type TaskScope,
@@ -215,6 +216,19 @@ export async function deleteSharedTask(taskId: string, workspaceId: string) {
   if (!membership) throw new Error("Not a workspace member");
 
   await deleteSharedTaskById(id, wsId);
+  revalidatePath("/");
+}
+
+export async function deleteSelectedSharedTasks(taskIds: string[], workspaceId: string) {
+  const session = await requireSession();
+  const ownerId = requireOwnerId(session);
+  const ids = taskIdsSchema.parse(taskIds);
+  const wsId = taskIdSchema.parse(workspaceId);
+
+  const membership = await getWorkspaceMembership(wsId, ownerId);
+  if (!membership) throw new Error("Not a workspace member");
+
+  await deleteSharedTasksByIds(ids, wsId);
   revalidatePath("/");
 }
 

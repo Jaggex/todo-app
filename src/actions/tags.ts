@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 
@@ -18,6 +17,7 @@ async function requireOwnerId(): Promise<string> {
 export type TagActionState = {
   ok: boolean;
   message?: string;
+  tagName?: string;
 };
 
 export async function createTagAction(
@@ -37,14 +37,10 @@ export async function createTagAction(
     return { ok: false, message: "Could not create tag. It may already exist." };
   }
 
-  revalidatePath("/");
-  revalidatePath("/completed");
-  return { ok: true };
+  return { ok: true, tagName: (name as string).trim() };
 }
 
 export async function deleteTagAction(tagId: string): Promise<void> {
   const ownerId = await requireOwnerId();
   await deleteTagInDb(ownerId, tagId);
-  revalidatePath("/");
-  revalidatePath("/completed");
 }
