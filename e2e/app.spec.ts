@@ -1,5 +1,13 @@
 import { test, expect } from "@playwright/test";
 
+const RUN_ID = Date.now();
+const TAG_TESTI = `testi-${RUN_ID}`;
+const TAG_FRONTEND = `frontend-${RUN_ID}`;
+const TAG_BACKEND = `backend-${RUN_ID}`;
+const TASK_1 = `testi tehtävä ${RUN_ID}`;
+const TASK_2 = `testi 2 ${RUN_ID}`;
+const TASK_3 = `testi 3 ${RUN_ID}`;
+
 // All tests start already authenticated via global setup (e2e/global-setup.ts)
 
 test("landing page redirects authenticated user to app", async ({ page }) => {
@@ -19,7 +27,7 @@ test("create task with title, message, scope and tag", async ({ page }) => {
   const createSection = page.locator("section").filter({ hasText: "Create new task" });
   await expect(createSection.getByPlaceholder("Title")).toBeVisible();
 
-  await createSection.getByPlaceholder("Title").fill("testi tehtävä");
+  await createSection.getByPlaceholder("Title").fill(TASK_1);
   await createSection.getByPlaceholder("Message (optional)").fill("testi testi testi");
 
   const personalBtn = createSection.getByRole("button", { name: "Personal" });
@@ -30,19 +38,19 @@ test("create task with title, message, scope and tag", async ({ page }) => {
   // Open tag input and create three tags
   await createSection.getByRole("button", { name: "+ Tag" }).click();
 
-  await createSection.getByPlaceholder("New tag name").fill("testi");
+  await createSection.getByPlaceholder("New tag name").fill(TAG_TESTI);
   await createSection.getByRole("button", { name: "Create" }).click();
-  await expect(createSection.getByRole("button", { name: "testi" })).toBeVisible();
+  await expect(createSection.getByRole("button", { name: TAG_TESTI })).toBeVisible();
   await page.waitForTimeout(500);
 
-  await createSection.getByPlaceholder("New tag name").fill("frontend");
+  await createSection.getByPlaceholder("New tag name").fill(TAG_FRONTEND);
   await createSection.getByRole("button", { name: "Create" }).click();
-  await expect(createSection.getByRole("button", { name: "frontend" })).toBeVisible();
+  await expect(createSection.getByRole("button", { name: TAG_FRONTEND })).toBeVisible();
   await page.waitForTimeout(500);
 
-  await createSection.getByPlaceholder("New tag name").fill("backend");
+  await createSection.getByPlaceholder("New tag name").fill(TAG_BACKEND);
   await createSection.getByRole("button", { name: "Create" }).click();
-  await expect(createSection.getByRole("button", { name: "backend" })).toBeVisible();
+  await expect(createSection.getByRole("button", { name: TAG_BACKEND })).toBeVisible();
   await page.waitForTimeout(500);
 
   await page.getByRole("button", { name: "Add task" }).click();
@@ -59,8 +67,8 @@ test("create tasks testi 2 and testi 3 with existing tags", async ({ page }) => 
   await page.getByRole("link", { name: "New task" }).click();
   await expect(createSection.getByPlaceholder("Title")).toBeVisible();
 
-  await createSection.getByPlaceholder("Title").fill("testi 2");
-  await createSection.getByRole("button", { name: "frontend" }).click();
+  await createSection.getByPlaceholder("Title").fill(TASK_2);
+  await createSection.getByRole("button", { name: TAG_FRONTEND }).click();
   await page.getByRole("button", { name: "Add task" }).click();
   await page.waitForURL("/", { timeout: 10_000 });
   await page.waitForLoadState("networkidle");
@@ -69,8 +77,8 @@ test("create tasks testi 2 and testi 3 with existing tags", async ({ page }) => 
   await page.getByRole("link", { name: "New task" }).click();
   await expect(createSection.getByPlaceholder("Title")).toBeVisible();
 
-  await createSection.getByPlaceholder("Title").fill("testi 3");
-  await createSection.getByRole("button", { name: "backend" }).click();
+  await createSection.getByPlaceholder("Title").fill(TASK_3);
+  await createSection.getByRole("button", { name: TAG_BACKEND }).click();
   await page.getByRole("button", { name: "Add task" }).click();
   await page.waitForURL("/", { timeout: 10_000 });
 });
@@ -82,28 +90,28 @@ test("filter tasks by tag", async ({ page }) => {
   const filterBar = page.locator("div").filter({ hasText: /^Filter:/ }).first();
 
   // Filter by frontend — testi tehtävä and testi 2 visible, testi 3 not
-  await filterBar.getByRole("button", { name: "frontend" }).click();
+  await filterBar.getByRole("button", { name: TAG_FRONTEND }).click();
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("testi tehtävä")).toBeVisible();
-  await expect(page.getByText("testi 2")).toBeVisible();
-  await expect(page.getByText("testi 3")).not.toBeVisible();
+  await expect(page.getByText(TASK_1, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_2, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_3, { exact: true })).not.toBeVisible();
 
   // Deselect frontend — all tasks visible
-  await filterBar.getByRole("button", { name: "frontend" }).click();
+  await filterBar.getByRole("button", { name: TAG_FRONTEND }).click();
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("testi tehtävä")).toBeVisible();
-  await expect(page.getByText("testi 2")).toBeVisible();
-  await expect(page.getByText("testi 3")).toBeVisible();
+  await expect(page.getByText(TASK_1, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_2, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_3, { exact: true })).toBeVisible();
 
   // Filter by backend — testi tehtävä and testi 3 visible, testi 2 not
-  await filterBar.getByRole("button", { name: "backend" }).click();
+  await filterBar.getByRole("button", { name: TAG_BACKEND }).click();
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("testi tehtävä")).toBeVisible();
-  await expect(page.getByText("testi 3")).toBeVisible();
-  await expect(page.getByText("testi 2")).not.toBeVisible();
+  await expect(page.getByText(TASK_1, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_3, { exact: true })).toBeVisible();
+  await expect(page.getByText(TASK_2, { exact: true })).not.toBeVisible();
 });
 
 test("delete tags from new task form", async ({ page }) => {
@@ -118,7 +126,7 @@ test("delete tags from new task form", async ({ page }) => {
   // Auto-accept the confirm() dialog for all deletes
   page.on("dialog", (dialog) => dialog.accept());
 
-  for (const tagName of ["testi", "frontend", "backend"]) {
+  for (const tagName of [TAG_TESTI, TAG_FRONTEND, TAG_BACKEND]) {
     const tagBtn = createSection.getByRole("button", { name: tagName });
     await tagBtn.hover();
     await createSection.getByTitle(`Delete "${tagName}" tag`).click();
@@ -131,7 +139,7 @@ test("delete tags from new task form", async ({ page }) => {
 
   // Delete the test tasks
 
-  for (const taskTitle of ["testi tehtävä", "testi 2", "testi 3"]) {
+  for (const taskTitle of [TASK_1, TASK_2, TASK_3]) {
     const taskRow = page
       .locator("div")
       .filter({ has: page.getByText(taskTitle, { exact: true }) })
@@ -143,7 +151,7 @@ test("delete tags from new task form", async ({ page }) => {
 });
 
 test("create task, mark as completed, verify on completed page, then delete", async ({ page }) => {
-  const taskTitle = "completed task test";
+  const taskTitle = `completed task test ${RUN_ID}`;
 
   // Create the task
   await page.goto("/");
@@ -166,7 +174,8 @@ test("create task, mark as completed, verify on completed page, then delete", as
   await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
 
   // Navigate to completed page and verify the task is there
-  await page.getByRole("link", { name: "Completed" }).click();
+  await page.waitForLoadState("networkidle");
+  await page.goto("/completed");
   await page.waitForLoadState("networkidle");
   await expect(page.getByText(taskTitle, { exact: true })).toBeVisible();
 
@@ -395,8 +404,8 @@ test("edit task — update title and message", async ({ page }) => {
 });
 
 test("task search filters results", async ({ page }) => {
-  const taskA = "unique searchable alpha";
-  const taskB = "unique searchable beta";
+  const taskA = `unique searchable alpha ${RUN_ID}`;
+  const taskB = `unique searchable beta ${RUN_ID}`;
 
   // Create two tasks
   await page.goto("/");
