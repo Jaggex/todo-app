@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { SignInForm } from "./signin-form";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Sign in to your Worktasks account to manage your tasks and team workspaces.",
+};
 
 export default async function SignInPage({
   searchParams,
