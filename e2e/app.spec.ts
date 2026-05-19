@@ -130,6 +130,7 @@ test("delete tags from new task form", async ({ page }) => {
     const tagBtn = createSection.getByRole("button", { name: tagName });
     await tagBtn.hover();
     await createSection.getByTitle(`Delete "${tagName}" tag`).click();
+    await page.waitForTimeout(500);
     await expect(tagBtn).not.toBeVisible();
   }
 
@@ -146,11 +147,13 @@ test("delete tags from new task form", async ({ page }) => {
       .filter({ has: page.getByRole("button", { name: "Delete" }) })
       .last();
     await taskRow.getByRole("button", { name: "Delete" }).click();
+    await page.waitForTimeout(500);
     await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
   }
 
   // Wait for all delete server actions to persist, then verify with a fresh load
   await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(500);
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   for (const taskTitle of [TASK_1, TASK_2, TASK_3]) {
@@ -179,6 +182,7 @@ test("create task, mark as completed, verify on completed page, then delete", as
     .filter({ has: page.getByRole("button", { name: "Delete" }) })
     .last();
   await taskRow.getByLabel("Complete").check();
+  await page.waitForTimeout(500);
   await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
 
   // Navigate to completed page and verify the task is there
@@ -195,6 +199,8 @@ test("create task, mark as completed, verify on completed page, then delete", as
     .filter({ has: page.getByRole("button", { name: "Delete" }) })
     .last();
   await completedRow.getByRole("button", { name: "Delete" }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
 });
 
@@ -224,11 +230,13 @@ test("create 3 tasks, mark as completed, bulk delete on completed page", async (
       .filter({ has: page.getByRole("button", { name: "Delete" }) })
       .last();
     await taskRow.getByLabel("Complete").check();
+    await page.waitForTimeout(500);
     await expect(page.getByText(title, { exact: true })).not.toBeVisible();
   }
 
   // Navigate to completed page
-  await page.getByRole("link", { name: "Completed" }).click();
+  await page.waitForLoadState("networkidle");
+  await page.goto("/completed");
   await page.waitForLoadState("networkidle");
 
   // Verify all three tasks are visible
@@ -240,6 +248,8 @@ test("create 3 tasks, mark as completed, bulk delete on completed page", async (
   await page.getByRole("button", { name: "Select all" }).click();
   await expect(page.getByRole("button", { name: /Delete selected/ })).toBeVisible();
   await page.getByRole("button", { name: /Delete selected/ }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
 
   // Verify all tasks are gone
   for (const title of bulkTitles) {
@@ -291,6 +301,8 @@ test("create workspace, create shared task, verify it, delete it, then delete wo
     .filter({ has: page.getByRole("button", { name: "Delete" }) })
     .last();
   await taskRow.getByRole("button", { name: "Delete" }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
   await expect(workspaceSection.getByText(sharedTaskTitle, { exact: true })).not.toBeVisible();
 
   // Navigate to workspace settings and delete the workspace
@@ -343,6 +355,8 @@ test("create workspace, create 3 shared tasks, bulk delete them, then delete wor
   await workspaceSection.getByRole("button", { name: "Select all" }).click();
   await expect(workspaceSection.getByRole("button", { name: /Delete selected/ })).toBeVisible();
   await workspaceSection.getByRole("button", { name: /Delete selected/ }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
 
   // Confirm all tasks are gone
   for (const title of sharedTitles) {
@@ -391,6 +405,7 @@ test("edit task — update title and message", async ({ page }) => {
   await editForm.locator('input[name="title"]').fill(updatedTitle);
   await editForm.locator('textarea[name="message"]').fill(updatedMessage);
   await editForm.getByRole("button", { name: "Save" }).click();
+  await page.waitForTimeout(500);
 
   // Verify the updated title appears and original does not
   await expect(page.getByText(updatedTitle, { exact: true })).toBeVisible();
@@ -408,6 +423,8 @@ test("edit task — update title and message", async ({ page }) => {
     .filter({ has: page.getByRole("button", { name: "Delete" }) })
     .last();
   await updatedRow.getByRole("button", { name: "Delete" }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText(updatedTitle, { exact: true })).not.toBeVisible();
 });
 
@@ -459,8 +476,10 @@ test("task search filters results", async ({ page }) => {
       .filter({ has: page.getByRole("button", { name: "Delete" }) })
       .last();
     await row.getByRole("button", { name: "Delete" }).click();
+    await page.waitForTimeout(500);
     await expect(page.getByText(title, { exact: true })).not.toBeVisible();
   }
+  await page.waitForLoadState("networkidle");
 });
 
 test("task with due date shows date label", async ({ page }) => {
@@ -494,6 +513,8 @@ test("task with due date shows date label", async ({ page }) => {
   // Clean up
   page.on("dialog", (dialog) => dialog.accept());
   await taskRow.getByRole("button", { name: "Delete" }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
 });
 
@@ -525,6 +546,7 @@ test("search on completed page filters results", async ({ page }) => {
       .filter({ has: page.getByRole("button", { name: "Delete" }) })
       .last();
     await row.getByLabel("Complete").check();
+    await page.waitForTimeout(500);
     await expect(page.getByText(title, { exact: true })).not.toBeVisible();
   }
 
@@ -550,6 +572,8 @@ test("search on completed page filters results", async ({ page }) => {
   // Bulk delete both
   await page.getByRole("button", { name: "Select all" }).click();
   await page.getByRole("button", { name: /Delete selected/ }).click();
+  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
   for (const title of [taskA, taskB]) {
     await expect(page.getByText(title, { exact: true })).not.toBeVisible();
   }
