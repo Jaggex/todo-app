@@ -148,6 +148,14 @@ test("delete tags from new task form", async ({ page }) => {
     await taskRow.getByRole("button", { name: "Delete" }).click();
     await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
   }
+
+  // Wait for all delete server actions to persist, then verify with a fresh load
+  await page.waitForLoadState("networkidle");
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  for (const taskTitle of [TASK_1, TASK_2, TASK_3]) {
+    await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
+  }
 });
 
 test("create task, mark as completed, verify on completed page, then delete", async ({ page }) => {
@@ -191,7 +199,7 @@ test("create task, mark as completed, verify on completed page, then delete", as
 });
 
 test("create 3 tasks, mark as completed, bulk delete on completed page", async ({ page }) => {
-  const bulkTitles = ["bulk delete 1", "bulk delete 2", "bulk delete 3"];
+  const bulkTitles = [`bulk delete 1 ${RUN_ID}`, `bulk delete 2 ${RUN_ID}`, `bulk delete 3 ${RUN_ID}`];
 
   // Create all three tasks
   await page.goto("/");
@@ -240,8 +248,8 @@ test("create 3 tasks, mark as completed, bulk delete on completed page", async (
 });
 
 test("create workspace, create shared task, verify it, delete it, then delete workspace", async ({ page }) => {
-  const workspaceName = "e2e test workspace";
-  const sharedTaskTitle = "shared e2e task";
+  const workspaceName = `e2e test workspace ${RUN_ID}`;
+  const sharedTaskTitle = `shared e2e task ${RUN_ID}`;
 
   // Create the workspace
   await page.goto("/workspaces");
@@ -299,8 +307,8 @@ test("create workspace, create shared task, verify it, delete it, then delete wo
 });
 
 test("create workspace, create 3 shared tasks, bulk delete them, then delete workspace", async ({ page }) => {
-  const workspaceName = "e2e bulk shared workspace";
-  const sharedTitles = ["shared bulk 1", "shared bulk 2", "shared bulk 3"];
+  const workspaceName = `e2e bulk shared workspace ${RUN_ID}`;
+  const sharedTitles = [`shared bulk 1 ${RUN_ID}`, `shared bulk 2 ${RUN_ID}`, `shared bulk 3 ${RUN_ID}`];
 
   // Create the workspace
   await page.goto("/workspaces");
@@ -456,7 +464,7 @@ test("task search filters results", async ({ page }) => {
 });
 
 test("task with due date shows date label", async ({ page }) => {
-  const taskTitle = "due date test task";
+  const taskTitle = `due date test task ${RUN_ID}`;
   // Use a future date so it won't be marked overdue
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -548,8 +556,8 @@ test("search on completed page filters results", async ({ page }) => {
 });
 
 test("rename workspace", async ({ page }) => {
-  const originalName = "rename test workspace";
-  const renamedName = "renamed workspace";
+  const originalName = `rename test workspace ${RUN_ID}`;
+  const renamedName = `renamed workspace ${RUN_ID}`;
 
   // Create workspace
   await page.goto("/workspaces");
@@ -579,6 +587,23 @@ test("rename workspace", async ({ page }) => {
   await page.waitForURL(/\/workspaces\/.+/, { timeout: 10_000 });
   await page.getByRole("button", { name: "Delete workspace" }).click();
   await page.waitForURL("/workspaces", { timeout: 10_000 });
+});
+
+test("verify clean state after all tests", async ({ page }) => {
+  // No pending personal tasks
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByText("No pending tasks.")).toBeVisible();
+
+  // No completed tasks
+  await page.goto("/completed");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByText("No completed tasks.")).toBeVisible();
+
+  // No workspaces
+  await page.goto("/workspaces");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByText("You are not a member of any workspace yet.")).toBeVisible();
 });
 
 test("account page shows user info and sign out redirects to landing", async ({ page }) => {
