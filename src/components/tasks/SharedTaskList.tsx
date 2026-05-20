@@ -155,6 +155,8 @@ export function SharedTaskList({ tasks, workspaceId, allTags }: SharedTaskListPr
                       }
                       onDelete={() => handleDelete(task.id)}
                       onEdit={() => setEditingTaskId(task.id)}
+                      completedBy={task.completedBy}
+                      completedAt={task.completedAt}
                     />
                   }
                 />

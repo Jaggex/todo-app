@@ -15,6 +15,8 @@ export type Task = {
   scope: TaskScope;
   workspaceId?: string;
   createdBy?: string;
+  completedBy?: string;
+  completedAt?: Date;
 };
 
 type TaskDocument = Omit<Task, "id"> & {
@@ -48,6 +50,8 @@ function toTask(task: WithId<TaskDocument>): Task {
     scope: task.scope ?? "personal",
     workspaceId: task.workspaceId,
     createdBy: task.createdBy,
+    completedBy: task.completedBy,
+    completedAt: task.completedAt,
   };
 }
 
@@ -379,14 +383,32 @@ export async function deleteTasksByIds(ownerId: string, taskIds: string[]) {
 export async function setSharedTaskCompletedById(
   taskId: string,
   workspaceId: string,
-  completed: boolean
+  completed: boolean,
+  completedBy?: string
 ) {
   await ensureMongoTasksReady();
   const collection = await getTasksCollection();
-  await collection.updateOne(
-    { _id: new ObjectId(taskId), scope: "shared", workspaceId },
-    { $set: { completed, order: 0 } }
-  );
+  if (completed) {
+    await collection.updateOne(
+      { _id: new ObjectId(taskId), scope: "shared", workspaceId },
+      {
+        $set: {
+          completed: true,
+          order: 0,
+          completedBy: completedBy ?? undefined,
+          completedAt: new Date(),
+        },
+      }
+    );
+  } else {
+    await collection.updateOne(
+      { _id: new ObjectId(taskId), scope: "shared", workspaceId },
+      {
+        $set: { completed: false, order: 0 },
+        $unset: { completedBy: "", completedAt: "" },
+      }
+    );
+  }
 }
 
 export async function updateSharedTaskById(

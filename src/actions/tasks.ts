@@ -202,7 +202,10 @@ export async function setSharedTaskCompleted(
   const membership = await getWorkspaceMembership(wsId, ownerId);
   if (!membership) throw new Error("Not a workspace member");
 
-  await setSharedTaskCompletedById(id, wsId, isCompleted);
+  const completedBy =
+    typeof session.user?.email === "string" ? session.user.email : undefined;
+
+  await setSharedTaskCompletedById(id, wsId, isCompleted, completedBy);
   revalidatePath("/");
 }
 

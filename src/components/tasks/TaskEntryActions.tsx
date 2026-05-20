@@ -7,6 +7,8 @@ type TaskEntryActionsProps = {
   onCompletedChange?: (completed: boolean) => void;
   onDelete: () => void;
   onEdit?: () => void;
+  completedBy?: string;
+  completedAt?: Date;
 };
 
 export function TaskEntryActions({
@@ -14,6 +16,8 @@ export function TaskEntryActions({
   onCompletedChange,
   onDelete,
   onEdit,
+  completedBy,
+  completedAt,
 }: TaskEntryActionsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -54,7 +58,7 @@ export function TaskEntryActions({
 
   const completeCheckbox = onCompletedChange ? (
     <label
-      className="flex items-center gap-2 text-xs text-zinc-300"
+      className="hidden items-center gap-2 text-xs text-zinc-300 sm:flex"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <input
@@ -76,40 +80,18 @@ export function TaskEntryActions({
         onCompletedChange(!completed);
       }}
       onPointerDown={(e) => e.stopPropagation()}
-      className="text-xs text-zinc-300 hover:text-white"
+      className="w-full rounded-md bg-zinc-600 py-1.5 text-sm text-zinc-100 hover:bg-zinc-500 sm:hidden"
     >
-      {completed ? "Move to Pending" : "Move to Completed"}
+      {completed ? "Mark as uncompleted" : "Mark as completed"}
     </button>
   ) : null;
-
-  const editButton = onEdit ? (
-    <button
-      type="button"
-      onClick={handleEdit}
-      onPointerDown={(e) => e.stopPropagation()}
-      className="rounded-md bg-zinc-900 px-2 py-1 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black"
-    >
-      Edit
-    </button>
-  ) : null;
-
-  const deleteButton = (
-    <button
-      type="button"
-      onClick={handleDelete}
-      onPointerDown={(e) => e.stopPropagation()}
-      className="rounded-md bg-zinc-900 px-2 py-1 text-xs text-zinc-300 hover:bg-neutral-100 hover:text-black"
-    >
-      Delete
-    </button>
-  );
 
   const editMenuItem = onEdit ? (
     <button
       type="button"
       onClick={handleEdit}
       onPointerDown={(e) => e.stopPropagation()}
-      className="text-xs text-zinc-300 hover:text-white"
+      className="w-full rounded-md bg-zinc-600 py-1.5 text-sm text-zinc-100 hover:bg-zinc-500"
     >
       Edit
     </button>
@@ -120,23 +102,17 @@ export function TaskEntryActions({
       type="button"
       onClick={handleDelete}
       onPointerDown={(e) => e.stopPropagation()}
-      className="text-xs text-zinc-300 hover:text-white"
+      className="w-full rounded-md bg-red-700 py-1.5 text-sm text-zinc-100 hover:bg-red-600"
     >
       Delete
     </button>
   );
 
   return (
-    <>
-      {/* Desktop / tablet: inline row */}
-      <div className="hidden items-center gap-3 sm:flex">
-        {completeCheckbox}
-        {editButton}
-        {deleteButton}
-      </div>
+    <div className="flex items-center gap-2 sm:gap-3">
+      {completeCheckbox}
 
-      {/* Mobile: 3-dot menu */}
-      <div className="relative sm:hidden" ref={menuRef}>
+      <div className="relative" ref={menuRef}>
         <button
           type="button"
           aria-haspopup="menu"
@@ -162,15 +138,21 @@ export function TaskEntryActions({
         {menuOpen ? (
           <div
             role="menu"
-            className="absolute right-0 top-full z-20 mt-1 flex w-40 flex-col items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 p-2 shadow-lg"
+            className="absolute right-0 top-full z-20 mt-1 flex w-52 flex-col items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 p-3 shadow-lg"
             onPointerDown={(e) => e.stopPropagation()}
           >
             {completeMenuItem}
             {editMenuItem}
             {deleteMenuItem}
+            {completed && completedBy ? (
+              <div className="mt-2 w-full break-words text-center text-xs text-zinc-400">
+                Completed by {completedBy}
+                {completedAt ? ` ${completedAt.toLocaleString("fi-FI")}` : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
-    </>
+    </div>
   );
 }
