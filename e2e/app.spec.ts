@@ -144,8 +144,9 @@ test("delete tags from new task form", async ({ page }) => {
     const taskRow = page
       .locator("div")
       .filter({ has: page.getByText(taskTitle, { exact: true }) })
-      .filter({ has: page.getByRole("button", { name: "Delete" }) })
+      .filter({ has: page.getByRole("button", { name: "Task actions" }) })
       .last();
+    await taskRow.getByRole("button", { name: "Task actions" }).click();
     await taskRow.getByRole("button", { name: "Delete" }).click();
     await page.waitForTimeout(500);
     await expect(page.getByText(taskTitle, { exact: true })).not.toBeVisible();
@@ -179,7 +180,7 @@ test("create task, mark as completed, verify on completed page, then delete", as
   const taskRow = page
     .locator("div")
     .filter({ has: page.getByText(taskTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
   await taskRow.getByLabel("Complete").check();
   await page.waitForTimeout(500);
@@ -196,8 +197,9 @@ test("create task, mark as completed, verify on completed page, then delete", as
   const completedRow = page
     .locator("div")
     .filter({ has: page.getByText(taskTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
+  await completedRow.getByRole("button", { name: "Task actions" }).click();
   await completedRow.getByRole("button", { name: "Delete" }).click();
   await page.waitForTimeout(500);
   await page.waitForLoadState("networkidle");
@@ -227,7 +229,7 @@ test("create 3 tasks, mark as completed, bulk delete on completed page", async (
     const taskRow = page
       .locator("div")
       .filter({ has: page.getByText(title, { exact: true }) })
-      .filter({ has: page.getByRole("button", { name: "Delete" }) })
+      .filter({ has: page.getByRole("button", { name: "Task actions" }) })
       .last();
     await taskRow.getByLabel("Complete").check();
     await page.waitForTimeout(500);
@@ -298,8 +300,9 @@ test("create workspace, create shared task, verify it, delete it, then delete wo
   const taskRow = workspaceSection
     .locator("div")
     .filter({ has: page.getByText(sharedTaskTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
+  await taskRow.getByRole("button", { name: "Task actions" }).click();
   await taskRow.getByRole("button", { name: "Delete" }).click();
   await page.waitForTimeout(500);
   await page.waitForLoadState("networkidle");
@@ -395,8 +398,9 @@ test("edit task — update title and message", async ({ page }) => {
   const taskRow = page
     .locator("div")
     .filter({ has: page.getByText(originalTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
+  await taskRow.getByRole("button", { name: "Task actions" }).click();
   await taskRow.getByRole("button", { name: "Edit", exact: true }).click();
 
   // Edit form should appear
@@ -420,8 +424,9 @@ test("edit task — update title and message", async ({ page }) => {
   const updatedRow = page
     .locator("div")
     .filter({ has: page.getByText(updatedTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
+  await updatedRow.getByRole("button", { name: "Task actions" }).click();
   await updatedRow.getByRole("button", { name: "Delete" }).click();
   await page.waitForTimeout(500);
   await page.waitForLoadState("networkidle");
@@ -473,8 +478,9 @@ test("task search filters results", async ({ page }) => {
     const row = page
       .locator("div")
       .filter({ has: page.getByText(title, { exact: true }) })
-      .filter({ has: page.getByRole("button", { name: "Delete" }) })
+      .filter({ has: page.getByRole("button", { name: "Task actions" }) })
       .last();
+    await row.getByRole("button", { name: "Task actions" }).click();
     await row.getByRole("button", { name: "Delete" }).click();
     await page.waitForTimeout(500);
     await expect(page.getByText(title, { exact: true })).not.toBeVisible();
@@ -506,12 +512,13 @@ test("task with due date shows date label", async ({ page }) => {
   const taskRow = page
     .locator("div")
     .filter({ has: page.getByText(taskTitle, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Delete" }) })
+    .filter({ has: page.getByRole("button", { name: "Task actions" }) })
     .last();
   await expect(taskRow.getByText(expectedLabel)).toBeVisible();
 
   // Clean up
   page.on("dialog", (dialog) => dialog.accept());
+  await taskRow.getByRole("button", { name: "Task actions" }).click();
   await taskRow.getByRole("button", { name: "Delete" }).click();
   await page.waitForTimeout(500);
   await page.waitForLoadState("networkidle");
@@ -543,7 +550,7 @@ test("search on completed page filters results", async ({ page }) => {
     const row = page
       .locator("div")
       .filter({ has: page.getByText(title, { exact: true }) })
-      .filter({ has: page.getByRole("button", { name: "Delete" }) })
+      .filter({ has: page.getByRole("button", { name: "Task actions" }) })
       .last();
     await row.getByLabel("Complete").check();
     await page.waitForTimeout(500);
